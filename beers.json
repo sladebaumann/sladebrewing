@@ -2,16 +2,34 @@
   "Doe Brand": {
     "description": "A simple, clean lager brewed with corn and 6-row with cluster hops and novalager yeast. Hopefully as good as my Dad's go-to beverage of choice!",
     "logo": "images/untappd-logos/Doe Brand - Pre-Prohibition Lager Untappd Image.png",
-    "untappd": "https://untappd.com/b/slade-brewing-doe-brand/6483546"
+    "untappd": "https://untappd.com/b/slade-brewing-doe-brand/6483546",
+    "abv": "5.1",
+    "ibu": "30",
+    "style": "Lager - American Pre-Prohibition",
+    "releaseDate": "2025-11-07",
+    "currentlyAvailable": true,
+    "featured": false
   },
   "Wild n' Mild": {
     "description": "An easy drinking, low abv dark mild brewed with a pound of northern MN wild rice!",
     "logo": "images/Wild n' Mild Untappd Image.png",
-    "untappd": "https://untappd.com/b/slade-brewing-wild-n-mild/6483539"
+    "untappd": "https://untappd.com/b/slade-brewing-wild-n-mild/6483539",
+    "abv": "2.8",
+    "ibu": "20",
+    "style": "Mild - Dark",
+    "releaseDate": "2025-11-07",
+    "currentlyAvailable": true,
+    "featured": false
   },
   "Sparkle Pants": {
     "description": "A coriander-forward belgian witbier with slight sweetness, dryness, and orange flavors.",
     "logo": "images/Sparkle Pants Witbier Untappd Image.png",
-    "untappd": "http://untappd.com/b/slade-brewing-sparkle-pants/6518820"
+    "untappd": "http://untappd.com/b/slade-brewing-sparkle-pants/6518820",
+    "abv": "4.4",
+    "ibu": "14",
+    "style": "Wheat Beer - Witbier/Blanche",
+    "releaseDate": "2025-11-28",
+    "currentlyAvailable": true,
+    "featured": false
   }
 }
