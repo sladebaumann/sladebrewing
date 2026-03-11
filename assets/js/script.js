@@ -1,3 +1,12 @@
+// Parallax effect for hero section
+window.addEventListener('scroll', function() {
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        const scrollPosition = window.pageYOffset;
+        hero.style.backgroundPosition = `center ${scrollPosition * 0.5}px`;
+    }
+});
+
 // Mobile menu toggle
 document.addEventListener('DOMContentLoaded', function() {
     const hamburger = document.querySelector('.hamburger');
