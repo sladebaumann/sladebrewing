@@ -156,20 +156,34 @@ a:hover {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, #1a1a1a 0%, var(--secondary-color) 50%, rgba(90, 159, 181, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(26, 26, 26, 0.5) 50%), url('../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg') center/cover;
     color: #ffffff;
-    padding: 8rem 2rem;
+    padding: 10rem 2rem;
     text-align: center;
-    min-height: 600px;
+    min-height: 700px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="dots" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%235a9fb5" opacity="0.1"/></pattern></defs><rect width="1200" height="600" fill="url(%23dots)"/></svg>');
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(90, 159, 181, 0.15) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .hero-content {
     max-width: 800px;
     animation: fadeInDown 0.8s ease;
+    position: relative;
+    z-index: 1;
 }
 
 .hero h1 {
@@ -750,4 +764,198 @@ a:hover {
     text-align: center;
     margin-top: 3rem;
     padding: 2rem 0;
+}
+
+/* Stats Section */
+.stats {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    color: #ffffff;
+    padding: 4rem 2rem;
+    margin: 3rem 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.stat-label {
+    font-size: 1rem;
+    opacity: 0.95;
+}
+
+/* Featured Beer Section */
+.featured-beer-section {
+    padding: 4rem 2rem;
+    background: linear-gradient(180deg, #ffffff 0%, rgba(90, 159, 181, 0.03) 100%);
+    margin: 3rem 0;
+}
+
+.featured-beer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.featured-beer-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.featured-beer-image img {
+    max-width: 100%;
+    max-height: 500px;
+    filter: drop-shadow(0 10px 30px rgba(90, 159, 181, 0.3));
+    transition: var(--transition);
+}
+
+.featured-beer-container:hover .featured-beer-image img {
+    transform: scale(1.05);
+}
+
+.featured-beer-content h3 {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1rem;
+}
+
+.featured-beer-content h2 {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+.featured-beer-content h2::after {
+    left: 0;
+    transform: translateX(0);
+}
+
+.featured-beer-content p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.beer-details-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.beer-detail {
+    padding: 1rem;
+    background: rgba(90, 159, 181, 0.1);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 4px;
+}
+
+.beer-detail-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.beer-detail-value {
+    font-size: 1.3rem;
+    color: var(--text-dark);
+    font-weight: 700;
+}
+
+/* Divider */
+.section-divider {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    margin: 3rem 0;
+    opacity: 0.5;
+}
+
+/* Better spacing for sections */
+.beers {
+    padding: 6rem 2rem;
+}
+
+.about {
+    padding: 6rem 2rem;
+}
+
+.contact {
+    padding: 6rem 2rem;
+}
+
+/* Enhanced beer card styling */
+.beer-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.beer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .featured-beer-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .beer-details-list {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .featured-beer-content h2 {
+        font-size: 1.8rem;
+    }
 }

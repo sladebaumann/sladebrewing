@@ -69,6 +69,12 @@ async function loadBeers() {
         // Clear any error messages
         container.innerHTML = '';
 
+        // Set featured beer (most recent one)
+        if (beerArray.length > 0) {
+            const featuredBeer = beerArray[0];
+            populateFeaturedBeer(featuredBeer);
+        }
+
         // Render beers
         beerArray.forEach(beer => {
             const card = createBeerCard(beer);
@@ -76,6 +82,29 @@ async function loadBeers() {
         });
         
         console.log('Beers rendered successfully');
+    } catch (error) {
+        console.error('Error loading beers:', error);
+        const container = document.getElementById('beer-container');
+        if (container) {
+            container.innerHTML = '<p style="text-align: center; color: #5a9fb5; padding: 2rem;">Unable to load beers. Please check your browser console for details.</p>';
+        }
+    }
+}
+
+// Populate featured beer section
+function populateFeaturedBeer(beer) {
+    const dateObj = new Date(beer.releaseDate);
+    const monthYear = dateObj.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+    document.getElementById('featured-beer-name').textContent = beer.name;
+    document.getElementById('featured-beer-desc').textContent = beer.description;
+    document.getElementById('featured-beer-style').textContent = beer.style;
+    document.getElementById('featured-beer-abv').textContent = beer.abv + '%';
+    document.getElementById('featured-beer-ibu').textContent = beer.ibu;
+    document.getElementById('featured-beer-date').textContent = monthYear;
+    document.getElementById('featured-beer-img').src = beer.logo;
+    document.getElementById('featured-beer-img').alt = beer.name;
+}
     } catch (error) {
         console.error('Error loading beers:', error);
         const container = document.getElementById('beer-container');
