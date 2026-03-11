@@ -19,21 +19,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Load beers from JSON
+    // Load beers from JSON or embedded data
     loadBeers();
 });
 
-// Load and display beers from beers.json
+// Load and display beers from beers.json or embedded data
 async function loadBeers() {
     try {
-        const response = await fetch('beers.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        let beers;
+        
+        // Try to fetch from beers.json first (for server environments)
+        try {
+            console.log('Attempting to load beers.json...');
+            const response = await fetch('./beers.json');
+            
+            if (response.ok) {
+                beers = await response.json();
+                console.log('Beers loaded from beers.json');
+            } else {
+                throw new Error('beers.json not found');
+            }
+        } catch (fetchError) {
+            // Fallback to embedded data (for local file access)
+            console.log('Using embedded beer data (local file mode)');
+            if (typeof beersData !== 'undefined') {
+                beers = beersData;
+            } else {
+                throw new Error('No beer data available');
+            }
         }
-        const beers = await response.json();
         
         const container = document.getElementById('beer-container');
-        if (!container) return;
+        if (!container) {
+            console.warn('Beer container element not found');
+            return;
+        }
 
         // Convert to array and sort by release date (newest first)
         const beerArray = Object.entries(beers)
@@ -44,16 +64,23 @@ async function loadBeers() {
                 return dateB - dateA;
             });
 
+        console.log('Beer array:', beerArray);
+
+        // Clear any error messages
+        container.innerHTML = '';
+
         // Render beers
         beerArray.forEach(beer => {
             const card = createBeerCard(beer);
             container.appendChild(card);
         });
+        
+        console.log('Beers rendered successfully');
     } catch (error) {
         console.error('Error loading beers:', error);
         const container = document.getElementById('beer-container');
         if (container) {
-            container.innerHTML = '<p>Error loading beers. Please refresh the page.</p>';
+            container.innerHTML = '<p style="text-align: center; color: #d4af37; padding: 2rem;">Unable to load beers. Please check your browser console for details.</p>';
         }
     }
 }
