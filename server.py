@@ -11,6 +11,7 @@ Admin panel: http://localhost:8000/admin
 import json
 import os
 import sys
+import subprocess
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
@@ -686,6 +687,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             with open(BEERS_FILE, 'w') as f:
                 json.dump(beers, f, indent=2)
             
+            # Commit to GitHub
+            self.commit_to_github("Add", data['name'])
+            
             self.send_json_response({"success": True, "message": "Beer added successfully"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
@@ -736,6 +740,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             with open(BEERS_FILE, 'w') as f:
                 json.dump(beers, f, indent=2)
             
+            # Commit to GitHub
+            self.commit_to_github("Update", new_name)
+            
             self.send_json_response({"success": True, "message": "Beer updated successfully"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
@@ -754,10 +761,14 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 self.send_json_response({"success": False, "error": "Beer not found"}, 404)
                 return
             
+            beer_name = data['name']
             del beers[data['name']]
             
             with open(BEERS_FILE, 'w') as f:
                 json.dump(beers, f, indent=2)
+            
+            # Commit to GitHub
+            self.commit_to_github("Delete", beer_name)
             
             self.send_json_response({"success": True, "message": "Beer deleted successfully"}, 200)
         except Exception as e:
@@ -774,6 +785,66 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Length', str(len(response_text.encode())))
         self.end_headers()
         self.wfile.write(response_text.encode())
+    
+    def commit_to_github(self, action, beer_name):
+        """Commit beers.json changes to GitHub."""
+        try:
+            # Check if we're in a git repository
+            result = subprocess.run(
+                ['git', 'rev-parse', '--git-dir'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode != 0:
+                # Not a git repo, skip commit
+                return False
+            
+            # Stage beers.json
+            subprocess.run(
+                ['git', 'add', 'beers.json'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                timeout=5
+            )
+            
+            # Create commit message
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            commit_msg = f"{action} beer: {beer_name} ({timestamp})"
+            
+            # Commit changes
+            commit_result = subprocess.run(
+                ['git', 'commit', '-m', commit_msg],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if commit_result.returncode != 0:
+                # Nothing to commit or error
+                return False
+            
+            # Push to GitHub (requires proper git setup)
+            push_result = subprocess.run(
+                ['git', 'push'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            return push_result.returncode == 0
+        
+        except subprocess.TimeoutExpired:
+            # Git operation timed out, but changes were saved locally
+            return False
+        except Exception as e:
+            # Log error but don't fail the beer operation
+            print(f"Git commit error: {e}", file=sys.stderr)
+            return False
     
     def end_headers(self):
         """Add CORS headers to all responses."""
