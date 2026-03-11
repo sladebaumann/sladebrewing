@@ -156,7 +156,6 @@ a:hover {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(26, 26, 26, 0.5) 50%), url('../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg') center/cover;
     color: #ffffff;
     padding: 10rem 2rem;
     text-align: center;
@@ -169,24 +168,27 @@ a:hover {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-image: url('../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg');
+    background-color: #1a1a1a;
 }
 
-.hero::before {
+.hero::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 50%, rgba(90, 159, 181, 0.15) 0%, transparent 50%);
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(26, 26, 26, 0.5) 100%);
     pointer-events: none;
+    z-index: 1;
 }
 
 .hero-content {
     max-width: 800px;
     animation: fadeInDown 0.8s ease;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .hero h1 {
