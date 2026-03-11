@@ -156,7 +156,7 @@ a:hover {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(26, 26, 26, 0.5) 50%), url('../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg') center/cover;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.7) 0%, rgba(26, 26, 26, 0.5) 50%), url('../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg') center/cover fixed;
     color: #ffffff;
     padding: 10rem 2rem;
     text-align: center;
@@ -166,6 +166,7 @@ a:hover {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    background-attachment: fixed;
 }
 
 .hero::before {
