@@ -16,7 +16,7 @@ from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 
 # Configuration
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 BEERS_FILE = "beers.json"
 
@@ -794,10 +794,11 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     os.chdir(STATIC_DIR)
     
-    server = HTTPServer(("localhost", PORT), SladBrewingHandler)
+    # Bind to 0.0.0.0 to accept external connections (required for Render)
+    server = HTTPServer(("0.0.0.0", PORT), SladBrewingHandler)
     print(f"Slade Brewing Website with Admin Panel")
     print(f"=" * 50)
-    print(f"Starting server at http://localhost:{PORT}")
+    print(f"Starting server on port {PORT}")
     print(f"")
     print(f"Available pages:")
     print(f"  🌐 Website: http://localhost:{PORT}")
