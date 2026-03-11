@@ -8,7 +8,15 @@
     "style": "Lager - American Pre-Prohibition",
     "releaseDate": "2025-11-07",
     "currentlyAvailable": true,
-    "featured": false
+    "featured": false,
+    "rating": 4.25,
+    "ratingCount": 42,
+    "totalCheckins": 127,
+    "totalUnique": 89,
+    "untappd_id": "6483546",
+    "imageUrl": "https://untappd.akamaized.net/site/beer_logos/beer-6483546_badge_250x0.jpg",
+    "abvUntappd": 5.1,
+    "ibuUntappd": 30
   },
   "Wild n' Mild": {
     "description": "An easy drinking, low abv dark mild brewed with a pound of northern MN wild rice!",
@@ -19,7 +27,15 @@
     "style": "Mild - Dark",
     "releaseDate": "2025-11-07",
     "currentlyAvailable": true,
-    "featured": false
+    "featured": false,
+    "rating": 4.15,
+    "ratingCount": 38,
+    "totalCheckins": 95,
+    "totalUnique": 72,
+    "untappd_id": "6483539",
+    "imageUrl": "https://untappd.akamaized.net/site/beer_logos/beer-6483539_badge_250x0.jpg",
+    "abvUntappd": 2.8,
+    "ibuUntappd": 20
   },
   "Sparkle Pants": {
     "description": "A coriander-forward belgian witbier with slight sweetness, dryness, and orange flavors.",
@@ -30,28 +46,14 @@
     "style": "Wheat Beer - Witbier/Blanche",
     "releaseDate": "2025-11-28",
     "currentlyAvailable": true,
-    "featured": false
-  },
-  "Test Beer": {
-    "description": "A test beer",
-    "logo": "",
-    "untappd": "",
-    "abv": 6.5,
-    "ibu": 50,
-    "style": "IPA",
-    "releaseDate": "2025-03-10",
-    "currentlyAvailable": true,
-    "featured": false
-  },
-  "Test Beer 2025": {
-    "description": "A test beer",
-    "logo": "",
-    "untappd": "",
-    "abv": 6.5,
-    "ibu": 50,
-    "style": "IPA",
-    "releaseDate": "2025-03-10",
-    "currentlyAvailable": true,
-    "featured": false
+    "featured": false,
+    "rating": 4.35,
+    "ratingCount": 51,
+    "totalCheckins": 143,
+    "totalUnique": 108,
+    "untappd_id": "6518820",
+    "imageUrl": "https://untappd.akamaized.net/site/beer_logos/beer-6518820_badge_250x0.jpg",
+    "abvUntappd": 4.4,
+    "ibuUntappd": 14
   }
 }

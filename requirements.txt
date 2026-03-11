@@ -1,0 +1,3 @@
+# Slade Brewing Website Server
+# Uses only Python standard library (http.server, json, os, sys, urllib.parse, datetime)
+# No external dependencies required
