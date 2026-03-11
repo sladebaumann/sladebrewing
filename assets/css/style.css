@@ -4,9 +4,9 @@
 
 /* Root Variables */
 :root {
-    --primary-color: #d4af37;
+    --primary-color: #5a9fb5;
     --secondary-color: #1a1a1a;
-    --accent-color: #d4a574;
+    --accent-color: #4a8fa5;
     --light-bg: #f5f3f0;
     --text-dark: #2c2c2c;
     --text-light: #666666;
@@ -109,10 +109,19 @@ a:hover {
     font-weight: 700;
     color: var(--primary-color);
     transition: var(--transition);
+    display: flex;
+    align-items: center;
 }
 
 .nav-logo a:hover {
     color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+.nav-logo .logo-img {
+    height: 50px;
+    width: auto;
+    display: block;
 }
 
 .nav-menu {
@@ -147,7 +156,7 @@ a:hover {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, #2a2a2a 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, var(--secondary-color) 50%, rgba(90, 159, 181, 0.1) 100%);
     color: #ffffff;
     padding: 8rem 2rem;
     text-align: center;
@@ -155,7 +164,7 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="dots" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23d4af37" opacity="0.1"/></pattern></defs><rect width="1200" height="600" fill="url(%23dots)"/></svg>');
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="dots" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%235a9fb5" opacity="0.1"/></pattern></defs><rect width="1200" height="600" fill="url(%23dots)"/></svg>');
 }
 
 .hero-content {
@@ -220,7 +229,7 @@ a:hover {
 /* About Section */
 .about {
     padding: 5rem 2rem;
-    background-color: var(--light-bg);
+    background: linear-gradient(180deg, #f9fbfc 0%, rgba(90, 159, 181, 0.05) 100%);
 }
 
 .about .container {
@@ -354,7 +363,7 @@ a:hover {
 /* Contact Section */
 .contact {
     padding: 5rem 2rem;
-    background-color: var(--light-bg);
+    background: linear-gradient(180deg, rgba(90, 159, 181, 0.05) 0%, #f9fbfc 100%);
 }
 
 .contact-wrapper {
