@@ -113,6 +113,14 @@ function populateFeaturedBeer(beer) {
     document.getElementById('featured-beer-date').textContent = monthYear;
     document.getElementById('featured-beer-img').src = beer.logo;
     document.getElementById('featured-beer-img').alt = beer.name;
+    
+    // Add rating if available from enriched data
+    const ratingContainer = document.getElementById('featured-beer-rating-container');
+    const ratingEl = document.getElementById('featured-beer-rating');
+    if (ratingContainer && ratingEl && beer.rating) {
+        ratingEl.textContent = `★ ${beer.rating.toFixed(2)} (${beer.ratingCount} ratings)`;
+        ratingContainer.style.display = 'block';
+    }
 }
 
 // Create a beer card element
@@ -171,9 +179,30 @@ function createBeerCard(beer) {
     descEl.className = 'beer-description';
     descEl.textContent = beer.description;
 
-    // Beer links
+    // Beer links and enriched data
     const linksEl = document.createElement('div');
     linksEl.className = 'beer-links';
+
+    // Add enriched data from Untappd (ratings, checkins)
+    if (beer.rating) {
+        const ratingEl = document.createElement('div');
+        ratingEl.className = 'beer-rating';
+        ratingEl.innerHTML = `
+            <span class="rating-stars">★ ${beer.rating.toFixed(2)}</span>
+            <span class="rating-count">${beer.ratingCount} ratings</span>
+        `;
+        linksEl.appendChild(ratingEl);
+    }
+
+    if (beer.totalCheckins) {
+        const checkinsEl = document.createElement('div');
+        checkinsEl.className = 'beer-checkins';
+        checkinsEl.innerHTML = `
+            <span class="checkins-count">${beer.totalCheckins}</span>
+            <span class="checkins-label">check-ins</span>
+        `;
+        linksEl.appendChild(checkinsEl);
+    }
 
     if (beer.untappd) {
         const untappdLink = document.createElement('a');
@@ -181,6 +210,7 @@ function createBeerCard(beer) {
         untappdLink.target = '_blank';
         untappdLink.rel = 'noopener noreferrer';
         untappdLink.textContent = 'View on Untappd';
+        untappdLink.className = 'untappd-link';
         linksEl.appendChild(untappdLink);
     }
 
