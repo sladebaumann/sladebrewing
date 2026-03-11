@@ -42,5 +42,16 @@
     "releaseDate": "2025-03-10",
     "currentlyAvailable": true,
     "featured": false
+  },
+  "Test Beer 2025": {
+    "description": "A test beer",
+    "logo": "",
+    "untappd": "",
+    "abv": 6.5,
+    "ibu": 50,
+    "style": "IPA",
+    "releaseDate": "2025-03-10",
+    "currentlyAvailable": true,
+    "featured": false
   }
 }
