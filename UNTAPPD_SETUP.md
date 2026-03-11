@@ -1,5 +1,7 @@
 # Slade Brewing Website - Hybrid Beer Data System
 
+# ALERT: VIBE CODED - NOT SURE IF THIS ACTUALLY WORKS
+
 ## Overview
 
 This website uses a **hybrid approach** to manage beer data:
