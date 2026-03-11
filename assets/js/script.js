@@ -105,14 +105,6 @@ function populateFeaturedBeer(beer) {
     document.getElementById('featured-beer-img').src = beer.logo;
     document.getElementById('featured-beer-img').alt = beer.name;
 }
-    } catch (error) {
-        console.error('Error loading beers:', error);
-        const container = document.getElementById('beer-container');
-        if (container) {
-            container.innerHTML = '<p style="text-align: center; color: #d4af37; padding: 2rem;">Unable to load beers. Please check your browser console for details.</p>';
-        }
-    }
-}
 
 // Create a beer card element
 function createBeerCard(beer) {
