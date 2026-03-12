@@ -21,9 +21,38 @@ PORT = int(os.environ.get('PORT', 8000))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 BEERS_FILE = "beers.json"
 
+# Admin authentication - set via environment variable for security
+# Default password for development only - override in production!
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'devpassword123')
+
 
 class SladBrewingHandler(SimpleHTTPRequestHandler):
     """Custom HTTP handler for Slade Brewing site with admin panel."""
+    
+    def check_auth(self):
+        """Verify Basic authentication."""
+        auth_header = self.headers.get("Authorization", "")
+        if not auth_header.startswith("Basic "):
+            return False
+        
+        try:
+            import base64
+            encoded = auth_header[6:]
+            decoded = base64.b64decode(encoded).decode("utf-8")
+            username, password = decoded.split(":", 1)
+            return password == ADMIN_PASSWORD
+        except Exception:
+            return False
+    
+    def require_auth(self):
+        """Send 401 if not authenticated."""
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="Admin"')
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps({"success": False, "error": "Authentication required"}).encode())
+        return False
     
     def do_GET(self):
         """Handle GET requests."""
@@ -31,6 +60,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         # Admin panel
         if parsed_path.path == "/admin":
+            if not self.check_auth():
+                self.serve_login_page()
+                return
             self.serve_admin_panel()
             return
         
@@ -50,6 +82,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
     
     def do_POST(self):
         """Handle POST requests for beer management."""
+        
+        # Require auth for all POST requests (add/update/delete)
+        if not self.check_auth():
+            self.require_auth()
+            return
+            
         parsed_path = urlparse(self.path)
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length).decode('utf-8')
@@ -76,6 +114,124 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             return
         
         self.send_json_response({"success": False, "error": "Unknown endpoint"}, 404)
+    
+    def serve_login_page(self):
+        """Serve a login page that redirects to admin after auth."""
+        html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Required - Slade Brewing Admin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1rem;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 0.85rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .error {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Admin Login</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
+            Enter your admin password to access the beer management panel.
+        </p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required autofocus>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            
+            fetch('/admin', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Basic ' + btoa('admin:' + password)
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/admin';
+                } else {
+                    alert('Invalid password. Please try again.');
+                }
+            }).catch(() => {
+                alert('Error logging in. Please try again.');
+            });
+        });
+    </script>
+</body>
+</html>"""
+        
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('WWW-Authenticate', 'Basic realm="Admin"')
+        self.end_headers()
+        self.wfile.write(html.encode())
     
     def serve_admin_panel(self):
         """Serve the admin panel HTML."""
@@ -780,7 +936,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         response_text = json.dumps(data)
         self.send_header('Content-Length', str(len(response_text.encode())))
         self.end_headers()
@@ -850,7 +1006,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         """Add CORS headers to all responses."""
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         super().end_headers()
     
     def do_OPTIONS(self):
@@ -858,7 +1014,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.end_headers()
 
 
@@ -872,8 +1028,10 @@ if __name__ == "__main__":
     print(f"Starting server on port {PORT}")
     print(f"")
     print(f"Available pages:")
-    print(f"  🌐 Website: http://localhost:{PORT}")
-    print(f"  🔧 Admin Panel: http://localhost:{PORT}/admin")
+    print(f"  Website: http://localhost:{PORT}")
+    print(f"  Admin Panel: http://localhost:{PORT}/admin")
+    print(f"")
+    print(f"Admin password: {'Set via ADMIN_PASSWORD env var' if 'ADMIN_PASSWORD' in os.environ else '(using default - change in production!)'}")
     print(f"")
     print(f"Press Ctrl+C to stop")
     print(f"=" * 50)

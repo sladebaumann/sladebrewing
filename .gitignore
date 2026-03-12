@@ -11,3 +11,6 @@
 
 # Intellij
 .idea
+
+# python
+__pycache__/
