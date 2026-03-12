@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load beers from JSON or embedded data
     loadBeers();
+    loadNews();
 });
 
 // Load and display beers from beers.json or embedded data
@@ -227,6 +228,87 @@ function createBeerCard(beer) {
 
     card.appendChild(img);
     card.appendChild(info);
+
+    return card;
+}
+
+// Load and display news
+async function loadNews() {
+    try {
+        let news;
+        
+        try {
+            const response = await fetch('./news.json');
+            if (response.ok) {
+                news = await response.json();
+            } else {
+                throw new Error('news.json not found');
+            }
+        } catch (fetchError) {
+            if (typeof newsData !== 'undefined') {
+                news = newsData;
+            } else {
+                throw new Error('No news data available');
+            }
+        }
+
+        const latestContainer = document.getElementById('latest-news-container');
+        const allNewsContainer = document.getElementById('all-news-container');
+
+        // Convert to array and sort by date (newest first)
+        const newsArray = Object.entries(news)
+            .map(([id, data]) => ({ id, ...data }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Render latest news on homepage
+        if (latestContainer && newsArray.length > 0) {
+            const latestNews = newsArray[0];
+            latestContainer.innerHTML = '';
+            latestContainer.appendChild(createNewsCard(latestNews, false));
+        }
+
+        // Render all news on news page
+        if (allNewsContainer) {
+            allNewsContainer.innerHTML = '';
+            newsArray.forEach(newsItem => {
+                allNewsContainer.appendChild(createNewsCard(newsItem, true));
+            });
+        }
+    } catch (error) {
+        console.error('Error loading news:', error);
+    }
+}
+
+// Create a news card element
+function createNewsCard(newsItem, showFullContent = false) {
+    const card = document.createElement('article');
+    card.className = 'news-item';
+
+    const dateObj = new Date(newsItem.date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+
+    let content = '';
+    if (showFullContent && newsItem.content) {
+        content = `<p>${newsItem.content}</p>`;
+    } else if (newsItem.summary) {
+        content = `<p>${newsItem.summary}</p>`;
+    }
+
+    const imageHtml = newsItem.image ? `<img src="${newsItem.image}" alt="${newsItem.title}" class="news-image">` : '';
+
+    card.innerHTML = `
+        <header class="news-item-header">
+            <span class="news-date">${formattedDate}</span>
+            <h3>${newsItem.title}</h3>
+        </header>
+        ${imageHtml}
+        ${content}
+        ${!showFullContent ? '<a href="news.html" class="btn btn-secondary">View All News</a>' : ''}
+    `;
 
     return card;
 }
