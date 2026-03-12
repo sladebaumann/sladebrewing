@@ -175,10 +175,11 @@ a:hover {
     position: relative;
     overflow: hidden;
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     background-repeat: no-repeat;
     background-image: url('../../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg');
     background-color: #1a1a1a;
+    background-attachment: fixed;
 }
 
 .hero::before {
@@ -590,7 +591,12 @@ a:hover {
 /* Contact Section */
 .contact {
     padding: 6rem 2rem;
-    background: linear-gradient(180deg, rgba(90, 159, 181, 0.08) 0%, rgba(212, 165, 116, 0.05) 100%);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-image: url('../../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg');
+    background-color: #1a1a1a;
+    background-attachment: fixed;
     position: relative;
 }
 
@@ -600,8 +606,26 @@ a:hover {
     top: 0;
     left: 0;
     right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26, 74, 112, 0.92) 0%, rgba(58, 122, 143, 0.88) 50%, rgba(26, 74, 112, 0.92) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.contact > * {
+    position: relative;
+    z-index: 1;
+}
+
+.contact::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
+    z-index: 2;
 }
 
 .contact::after {
@@ -687,7 +711,7 @@ a:hover {
 
 .info-item {
     padding: 2rem;
-    background: linear-gradient(135deg, rgba(212, 165, 116, 0.08) 0%, rgba(90, 159, 181, 0.08) 100%);
+    background: linear-gradient(135deg, #ffffff 0%, rgba(245, 243, 240, 0.9) 100%);
     border-radius: 12px;
     border-left: 4px solid var(--gold-accent);
     transition: var(--transition);
@@ -707,7 +731,7 @@ a:hover {
 }
 
 .info-item p {
-    color: var(--text-light);
+    color: var(--text-dark);
     line-height: 1.7;
 }
 
@@ -1031,8 +1055,9 @@ a:hover {
 }
 
 .news-item:hover {
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
-    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px rgba(212, 165, 116, 0.2);
+    border-left: 4px solid var(--gold-accent);
+    transform: translateY(-3px);
 }
 
 .news-item-header {
@@ -1104,7 +1129,12 @@ a:hover {
 
 /* Stats Section */
 .stats {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #6eb5c9 50%, var(--accent-color) 100%);
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-image: url('../../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg');
+    background-color: #1a1a1a;
+    background-attachment: fixed;
     color: #ffffff;
     padding: 5rem 2rem;
     margin: 3rem 0;
@@ -1115,13 +1145,13 @@ a:hover {
 .stats::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 50%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26, 74, 112, 0.9) 0%, rgba(58, 122, 143, 0.85) 50%, rgba(26, 74, 112, 0.9) 100%);
     pointer-events: none;
+    z-index: 0;
 }
 
 .stats::after {
@@ -1313,6 +1343,49 @@ a:hover {
     background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
     margin: 3rem 0;
     opacity: 0.5;
+}
+
+/* Latest News Section */
+.latest-news {
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-image: url('../../images/engin-akyurt-3ORoQEJY9LA-unsplash.jpg');
+    background-color: #1a1a1a;
+    background-attachment: fixed;
+    padding: 6rem 2rem;
+    position: relative;
+}
+
+.latest-news::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(58, 122, 143, 0.85) 50%, rgba(26, 26, 26, 0.9) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.latest-news .container {
+    position: relative;
+    z-index: 1;
+}
+
+.latest-news h2 {
+    color: #ffffff;
+    text-align: center;
+}
+
+.latest-news .news-item {
+    max-width: 800px;
+    margin: 0 auto 2rem auto;
+}
+
+.latest-news .news-item h3 {
+    color: var(--primary-color);
 }
 
 /* Better spacing for sections */
