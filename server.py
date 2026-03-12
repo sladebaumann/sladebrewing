@@ -142,7 +142,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
             min-height: 100vh;
             padding: 2rem;
         }
@@ -176,7 +176,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         .back-btn:hover {
             background: white;
-            color: #667eea;
+            color: #2563eb;
         }
         
         .content {
@@ -194,7 +194,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         }
         
         .panel h2 {
-            color: #667eea;
+            color: #2563eb;
             margin-bottom: 1.5rem;
             font-size: 1.5rem;
         }
@@ -230,8 +230,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         
         textarea {
@@ -265,15 +265,15 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         }
         
         .btn-primary {
-            background: #667eea;
+            background: #2563eb;
             color: white;
             width: 100%;
         }
         
         .btn-primary:hover {
-            background: #5568d3;
+            background: #1e40af;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
         }
         
         .btn-secondary {
@@ -321,7 +321,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             background: #f8f9fa;
             padding: 1.5rem;
             border-radius: 6px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #2563eb;
             transition: all 0.3s ease;
         }
         
@@ -331,7 +331,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         }
         
         .beer-item h3 {
-            color: #667eea;
+            color: #2563eb;
             margin-bottom: 0.5rem;
             font-size: 1.1rem;
         }
