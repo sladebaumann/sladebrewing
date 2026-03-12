@@ -58,6 +58,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         """Handle GET requests."""
         parsed_path = urlparse(self.path)
         
+        # Ignore favicon requests
+        if parsed_path.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
+        
         # Admin panel
         if parsed_path.path == "/admin":
             if not self.check_auth():
