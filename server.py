@@ -20,6 +20,7 @@ from datetime import datetime
 PORT = int(os.environ.get('PORT', 8000))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 BEERS_FILE = "beers.json"
+NEWS_FILE = "news.json"
 
 # Admin authentication - set via environment variable for security
 # Default password for development only - override in production!
@@ -87,6 +88,17 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             self.handle_get_beer(beer_name)
             return
         
+        # API endpoint to get all news
+        if parsed_path.path == "/api/news":
+            self.handle_get_news()
+            return
+        
+        # API endpoint to get single news
+        if parsed_path.path.startswith("/api/news/"):
+            news_id = parsed_path.path.replace("/api/news/", "").replace("%20", " ")
+            self.handle_get_news_item(news_id)
+            return
+        
         # Serve static files
         super().do_GET()
     
@@ -121,6 +133,21 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         # Delete beer
         if parsed_path.path == "/api/beers/delete":
             self.handle_delete_beer(data)
+            return
+        
+        # Add news
+        if parsed_path.path == "/api/news/add":
+            self.handle_add_news(data)
+            return
+        
+        # Update news
+        if parsed_path.path == "/api/news/update":
+            self.handle_update_news(data)
+            return
+        
+        # Delete news
+        if parsed_path.path == "/api/news/delete":
+            self.handle_delete_news(data)
             return
         
         self.send_json_response({"success": False, "error": "Unknown endpoint"}, 404)
@@ -403,6 +430,46 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             font-size: 1.1rem;
         }
         
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #2563eb;
+            border-color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 2rem;
+        }
+        
         @media (max-width: 768px) {
             .content {
                 grid-template-columns: 1fr;
@@ -423,11 +490,18 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
 <body>
     <div class="container">
         <header>
-            <h1>🍺 Beer Admin Panel</h1>
+            <h1>🍺 Slade Admin Panel</h1>
             <a href="/" class="back-btn">← Back to Website</a>
         </header>
         
-        <div class="content">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('beers')">Beers</button>
+            <button class="tab-btn" onclick="switchTab('news')">News</button>
+        </div>
+        
+        <!-- Beers Tab -->
+        <div id="beers-tab" class="tab-content active">
+            <div class="content">
             <!-- Add/Edit Beer Form -->
             <div class="panel">
                 <h2 id="form-title">Add New Beer</h2>
@@ -495,6 +569,69 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 <div id="beerList" class="beer-list">
                     <div class="empty-state">
                         <p>Loading beers...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        <!-- News Tab -->
+        <div id="news-tab" class="tab-content">
+            <div class="content">
+                <!-- Add/Edit News Form -->
+                <div class="panel">
+                    <h2 id="news-form-title">Add News Item</h2>
+                    <div id="news-message" class="message"></div>
+                    
+                    <form id="newsForm">
+                        <div class="form-group">
+                            <label for="newsId">News ID *</label>
+                            <input type="text" id="newsId" name="id" required placeholder="e.g., new-website-2025">
+                            <small style="color: #666;">URL-friendly identifier (no spaces)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newsTitle">Title *</label>
+                            <input type="text" id="newsTitle" name="title" required placeholder="e.g., Welcome to the New Website">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newsDate">Date *</label>
+                            <input type="date" id="newsDate" name="date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newsSummary">Summary</label>
+                            <textarea id="newsSummary" name="summary" placeholder="Short description for homepage (optional)"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newsContent">Full Content</label>
+                            <textarea id="newsContent" name="content" rows="4" placeholder="Full news article content..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="newsImage">Image URL</label>
+                            <input type="text" id="newsImage" name="image" placeholder="images/news/image-name.jpg (optional)">
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="newsFeatured" name="featured">
+                            <label for="newsFeatured" style="margin: 0;">Show on Homepage?</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save News</button>
+                        <button type="button" class="btn btn-secondary" id="newsCancelBtn" style="display:none;">Cancel</button>
+                    </form>
+                </div>
+                
+                <!-- News List -->
+                <div class="panel">
+                    <h2>News List</h2>
+                    <div id="newsList" class="beer-list">
+                        <div class="empty-state">
+                            <p>Loading news...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -661,6 +798,173 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 MESSAGE.className = 'message';
             }, 5000);
         }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            if (tabName === 'news') {
+                console.log('Loading news...');
+                loadNews();
+            }
+        }
+        
+        // News management
+        const NEWS_FORM = document.getElementById('newsForm');
+        const NEWS_MESSAGE = document.getElementById('news-message');
+        const NEWS_LIST = document.getElementById('newsList');
+        const NEWS_FORM_TITLE = document.getElementById('news-form-title');
+        const NEWS_CANCEL_BTN = document.getElementById('newsCancelBtn');
+        let editingNews = null;
+        
+        NEWS_FORM.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(NEWS_FORM);
+            const newsData = Object.fromEntries(formData);
+            
+            newsData.featured = formData.has('featured');
+            
+            const endpoint = editingNews ? '/api/news/update' : '/api/news/add';
+            if (editingNews) {
+                newsData.oldId = editingNews;
+            }
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newsData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNewsMessage(`News item ${editingNews ? 'updated' : 'added'} successfully!`, 'success');
+                    NEWS_FORM.reset();
+                    editingNews = null;
+                    NEWS_FORM_TITLE.textContent = 'Add News Item';
+                    NEWS_CANCEL_BTN.style.display = 'none';
+                    loadNews();
+                } else {
+                    showNewsMessage(result.error || 'An error occurred', 'error');
+                }
+            } catch (error) {
+                showNewsMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        NEWS_CANCEL_BTN.addEventListener('click', () => {
+            NEWS_FORM.reset();
+            editingNews = null;
+            NEWS_FORM_TITLE.textContent = 'Add News Item';
+            NEWS_CANCEL_BTN.style.display = 'none';
+        });
+        
+        async function loadNews() {
+            console.log('loadNews called');
+            try {
+                const response = await fetch('/api/news');
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('News data:', result);
+                
+                if (result.success && result.news) {
+                    const newsItems = Object.entries(result.news).map(([id, data]) => ({
+                        id,
+                        ...data
+                    }));
+                    
+                    if (newsItems.length === 0) {
+                        NEWS_LIST.innerHTML = '<div class="empty-state"><p>No news yet. Add one to get started!</p></div>';
+                    } else {
+                        NEWS_LIST.innerHTML = newsItems.map(news => `
+                            <div class="beer-item">
+                                <h3>${news.title}</h3>
+                                <p><strong>${formatDate(news.date)}</strong></p>
+                                <p>${news.summary || news.content}</p>
+                                <p>
+                                    ${news.featured ? '<span class="badge badge-featured">Homepage</span>' : ''}
+                                </p>
+                                <div class="beer-item-actions">
+                                    <button class="btn btn-edit" onclick="editNews('${news.id}')">Edit</button>
+                                    <button class="btn btn-danger" onclick="deleteNews('${news.id}')">Delete</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+                NEWS_LIST.innerHTML = '<div class="empty-state"><p>Error loading news: ' + error.message + '</p></div>';
+            }
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        
+        async function editNews(newsId) {
+            try {
+                const response = await fetch('/api/news/' + encodeURIComponent(newsId));
+                const result = await response.json();
+                
+                if (result.success && result.newsItem) {
+                    const news = result.newsItem;
+                    document.getElementById('newsId').value = news.id;
+                    document.getElementById('newsTitle').value = news.title;
+                    document.getElementById('newsDate').value = news.date;
+                    document.getElementById('newsSummary').value = news.summary || '';
+                    document.getElementById('newsContent').value = news.content || '';
+                    document.getElementById('newsImage').value = news.image || '';
+                    document.getElementById('newsFeatured').checked = news.featured;
+                    
+                    editingNews = newsId;
+                    NEWS_FORM_TITLE.textContent = 'Edit News: ' + news.title;
+                    NEWS_CANCEL_BTN.style.display = 'block';
+                    
+                    document.querySelector('#news-tab .panel').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                showNewsMessage('Error loading news: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteNews(newsId) {
+            if (!confirm(`Are you sure you want to delete this news item?`)) return;
+            
+            try {
+                const response = await fetch('/api/news/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: newsId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNewsMessage('News item deleted successfully!', 'success');
+                    loadNews();
+                } else {
+                    showNewsMessage(result.error || 'Error deleting news', 'error');
+                }
+            } catch (error) {
+                showNewsMessage('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function showNewsMessage(text, type) {
+            NEWS_MESSAGE.textContent = text;
+            NEWS_MESSAGE.className = 'message ' + type;
+            setTimeout(() => {
+                NEWS_MESSAGE.className = 'message';
+            }, 5000);
+        }
     </script>
 </body>
 </html>"""
@@ -694,6 +998,32 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 self.send_json_response({"success": True, "beer": beer}, 200)
             else:
                 self.send_json_response({"success": False, "error": "Beer not found"}, 404)
+        except Exception as e:
+            self.send_json_response({"success": False, "error": str(e)}, 500)
+    
+    def handle_get_news(self):
+        """Return all news as JSON."""
+        try:
+            with open(NEWS_FILE, 'r') as f:
+                news = json.load(f)
+            self.send_json_response({"success": True, "news": news}, 200)
+        except FileNotFoundError:
+            self.send_json_response({"success": False, "error": "news.json not found"}, 404)
+        except json.JSONDecodeError:
+            self.send_json_response({"success": False, "error": "Invalid JSON in news.json"}, 500)
+    
+    def handle_get_news_item(self, news_id):
+        """Return a single news item by ID."""
+        try:
+            with open(NEWS_FILE, 'r') as f:
+                news = json.load(f)
+            
+            if news_id in news:
+                item = news[news_id]
+                item['id'] = news_id
+                self.send_json_response({"success": True, "newsItem": item}, 200)
+            else:
+                self.send_json_response({"success": False, "error": "News item not found"}, 404)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -822,6 +1152,107 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
+    def handle_add_news(self, data):
+        """Add a new news item to news.json."""
+        try:
+            try:
+                with open(NEWS_FILE, 'r') as f:
+                    news = json.load(f)
+            except FileNotFoundError:
+                news = {}
+            
+            required = ['id', 'title', 'date']
+            if not all(field in data and data[field] for field in required):
+                self.send_json_response({"success": False, "error": "Missing required fields"}, 400)
+                return
+            
+            if data['id'] in news:
+                self.send_json_response({"success": False, "error": "News item with this ID already exists"}, 409)
+                return
+            
+            news[data['id']] = {
+                'title': data['title'],
+                'date': data['date'],
+                'summary': data.get('summary', ''),
+                'content': data.get('content', ''),
+                'image': data.get('image', None),
+                'featured': data.get('featured', False)
+            }
+            
+            with open(NEWS_FILE, 'w') as f:
+                json.dump(news, f, indent=2)
+            
+            self.commit_news_to_github("Add", data['title'])
+            
+            self.send_json_response({"success": True, "message": "News item added successfully"}, 200)
+        except Exception as e:
+            self.send_json_response({"success": False, "error": str(e)}, 500)
+    
+    def handle_update_news(self, data):
+        """Update an existing news item."""
+        try:
+            with open(NEWS_FILE, 'r') as f:
+                news = json.load(f)
+            
+            required = ['id', 'oldId', 'title', 'date']
+            if not all(field in data and data[field] for field in required):
+                self.send_json_response({"success": False, "error": "Missing required fields"}, 400)
+                return
+            
+            if data['oldId'] not in news:
+                self.send_json_response({"success": False, "error": "News item not found"}, 404)
+                return
+            
+            old_id = data['oldId']
+            new_id = data['id']
+            
+            news[new_id] = {
+                'title': data['title'],
+                'date': data['date'],
+                'summary': data.get('summary', ''),
+                'content': data.get('content', ''),
+                'image': data.get('image', None),
+                'featured': data.get('featured', False)
+            }
+            
+            if old_id != new_id:
+                del news[old_id]
+            
+            with open(NEWS_FILE, 'w') as f:
+                json.dump(news, f, indent=2)
+            
+            self.commit_news_to_github("Update", data['title'])
+            
+            self.send_json_response({"success": True, "message": "News item updated successfully"}, 200)
+        except Exception as e:
+            self.send_json_response({"success": False, "error": str(e)}, 500)
+    
+    def handle_delete_news(self, data):
+        """Delete a news item from news.json."""
+        try:
+            with open(NEWS_FILE, 'r') as f:
+                news = json.load(f)
+            
+            if 'id' not in data:
+                self.send_json_response({"success": False, "error": "News ID required"}, 400)
+                return
+            
+            if data['id'] not in news:
+                self.send_json_response({"success": False, "error": "News item not found"}, 404)
+                return
+            
+            news_title = news[data['id']]['title']
+            del news[data['id']]
+            
+            with open(NEWS_FILE, 'w') as f:
+                json.dump(news, f, indent=2)
+            
+            self.commit_news_to_github("Delete", news_title)
+            
+            self.send_json_response({"success": True, "message": "News item deleted successfully"}, 200)
+        except Exception as e:
+            self.send_json_response({"success": False, "error": str(e)}, 500)
+    
     def send_json_response(self, data, status_code=200):
         """Send a JSON response."""
         self.send_response(status_code)
@@ -891,6 +1322,57 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             return False
         except Exception as e:
             # Log error but don't fail the beer operation
+            print(f"Git commit error: {e}", file=sys.stderr)
+            return False
+    
+    def commit_news_to_github(self, action, news_title):
+        """Commit news.json changes to GitHub."""
+        try:
+            result = subprocess.run(
+                ['git', 'rev-parse', '--git-dir'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode != 0:
+                return False
+            
+            subprocess.run(
+                ['git', 'add', 'news.json'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                timeout=5
+            )
+            
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            commit_msg = f"{action} news: {news_title} ({timestamp})"
+            
+            commit_result = subprocess.run(
+                ['git', 'commit', '-m', commit_msg],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if commit_result.returncode != 0:
+                return False
+            
+            push_result = subprocess.run(
+                ['git', 'push'],
+                cwd=STATIC_DIR,
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            return push_result.returncode == 0
+        
+        except subprocess.TimeoutExpired:
+            return False
+        except Exception as e:
             print(f"Git commit error: {e}", file=sys.stderr)
             return False
     
