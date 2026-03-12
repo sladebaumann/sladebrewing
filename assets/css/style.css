@@ -343,7 +343,25 @@ a:hover {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
-    margin-top: 2rem;
+    margin: 2rem 0;
+}
+
+.see-all-link {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+.no-beers {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    padding: 2rem;
+}
+
+.beers-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary);
 }
 
 .beer-card {
@@ -1055,6 +1073,33 @@ a:hover {
     text-align: center;
     margin-top: 3rem;
     padding: 2rem 0;
+}
+
+/* Beers Page Styles */
+.beers-page {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 0;
+}
+
+.beers-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+}
+
+.beers-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.beers-header p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+}
+
+.beers-container {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Stats Section */
