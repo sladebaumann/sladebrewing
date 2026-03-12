@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Beers - Slade Brewing</title>
+        <link rel="stylesheet" href="assets/css/style.css">
+    </head>
+    <body>
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <a href="index.html">
+                        <img src="images/Slade Brewing - Main Logo.png" alt="Slade Brewing Logo" class="logo-img">
+                    </a>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="beers.html" class="nav-link">Our Beers</a></li>
+                    <li><a href="news.html" class="nav-link">News</a></li>
+                    <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+                </ul>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="beers-page">
+            <div class="container">
+                <section class="beers-header">
+                    <h1>Our Beers</h1>
+                    <p>Explore our full lineup of craft beers brewed in Minneapolis.</p>
+                </section>
+
+                <section class="beers-container">
+                    <h2>Current Lineup</h2>
+                    <div id="current-beers-container" class="beer-grid"></div>
+                    
+                    <h2 style="margin-top: 3rem;">Past Lineup</h2>
+                    <div id="past-beers-container" class="beer-grid"></div>
+                </section>
+
+                <div class="back-link">
+                    <a href="index.html" class="btn btn-secondary">Back to Home</a>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2025 Slade Brewing. All rights reserved.</p>
+                <p>Design crafted with care | <a href="https://html5up.net">Template inspiration from HTML5 UP</a></p>
+            </div>
+        </footer>
+
+        <script>
+        const beersData = {
+  "Doe Brand": {
+    "description": "A simple, clean lager brewed with corn and 6-row with cluster hops and novalager yeast. Hopefully as good as my Dad's go-to beverage of choice!",
+    "logo": "images/untappd-logos/Doe Brand - Pre-Prohibition Lager Untappd Image.png",
+    "untappd": "https://untappd.com/b/slade-brewing-doe-brand/6483546",
+    "abv": "5.1",
+    "ibu": "30",
+    "style": "Lager - American Pre-Prohibition",
+    "releaseDate": "2025-11-07",
+    "currentlyAvailable": true,
+    "featured": false
+  },
+  "Wild n' Mild": {
+    "description": "An easy drinking, low abv dark mild brewed with a pound of northern MN wild rice!",
+    "logo": "images/untappd-logos/Wild n' Mild Untappd Image.png",
+    "untappd": "https://untappd.com/b/slade-brewing-wild-n-mild/6483539",
+    "abv": "2.8",
+    "ibu": "20",
+    "style": "Mild - Dark",
+    "releaseDate": "2025-11-07",
+    "currentlyAvailable": true,
+    "featured": false
+  },
+  "Sparkle Pants": {
+    "description": "A coriander-forward belgian witbier with slight sweetness, dryness, and orange flavors.",
+    "logo": "images/untappd-logos/Sparkle Pants Witbier Untappd Image.png",
+    "untappd": "http://untappd.com/b/slade-brewing-sparkle-pants/6518820",
+    "abv": "4.4",
+    "ibu": "14",
+    "style": "Wheat Beer - Witbier/Blanche",
+    "releaseDate": "2025-11-28",
+    "currentlyAvailable": true,
+    "featured": false
+  }
+};
+    </script>
+    <script src="assets/js/script.js"></script>
+    </body>
+</html>

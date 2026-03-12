@@ -35,10 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load and display beers from beers.json or embedded data
 async function loadBeers() {
-    try {
-        let beers;
-        
-        // Try to fetch from beers.json first (for server environments)
+    let beers;
+    
+    // Check for embedded data first (for local file access)
+    if (typeof beersData !== 'undefined') {
+        console.log('Using embedded beer data');
+        beers = beersData;
+    } else {
+        // Try to fetch from beers.json (for server environments)
         try {
             console.log('Attempting to load beers.json...');
             const response = await fetch('./beers.json');
@@ -50,21 +54,12 @@ async function loadBeers() {
                 throw new Error('beers.json not found');
             }
         } catch (fetchError) {
-            // Fallback to embedded data (for local file access)
-            console.log('Using embedded beer data (local file mode)');
-            if (typeof beersData !== 'undefined') {
-                beers = beersData;
-            } else {
-                throw new Error('No beer data available');
-            }
-        }
-        
-        const container = document.getElementById('beer-container');
-        if (!container) {
-            console.warn('Beer container element not found');
+            console.error('Could not load beers:', fetchError);
             return;
         }
-
+    }
+    
+    try {
         // Convert to array and sort by release date (newest first)
         const beerArray = Object.entries(beers)
             .map(([name, data]) => ({ name, ...data }))
@@ -76,25 +71,63 @@ async function loadBeers() {
 
         console.log('Beer array:', beerArray);
 
-        // Clear any error messages
-        container.innerHTML = '';
-
-        // Set featured beer (most recent one)
-        if (beerArray.length > 0) {
-            const featuredBeer = beerArray[0];
-            populateFeaturedBeer(featuredBeer);
+        // Check which page we're on and render accordingly
+        const homepageContainer = document.getElementById('beer-container');
+        const currentBeersContainer = document.getElementById('current-beers-container');
+        const pastBeersContainer = document.getElementById('past-beers-container');
+        
+        console.log('Homepage container:', homepageContainer);
+        console.log('Current beers container:', currentBeersContainer);
+        console.log('Past beers container:', pastBeersContainer);
+        
+        // Homepage: show all beers
+        if (homepageContainer) {
+            console.log('Rendering beers for homepage');
+            homepageContainer.innerHTML = '';
+            beerArray.forEach(beer => {
+                const card = createBeerCard(beer);
+                homepageContainer.appendChild(card);
+            });
+            
+            // Set featured beer (most recent one that's currently available)
+            const availableBeers = beerArray.filter(b => b.currentlyAvailable);
+            if (availableBeers.length > 0) {
+                populateFeaturedBeer(availableBeers[0]);
+            }
         }
-
-        // Render beers
-        beerArray.forEach(beer => {
-            const card = createBeerCard(beer);
-            container.appendChild(card);
-        });
+        
+        // Beers page: split into current and past
+        if (currentBeersContainer && pastBeersContainer) {
+            console.log('Rendering beers for beers page');
+            const currentBeers = beerArray.filter(b => b.currentlyAvailable);
+            const pastBeers = beerArray.filter(b => !b.currentlyAvailable);
+            
+            currentBeersContainer.innerHTML = '';
+            pastBeersContainer.innerHTML = '';
+            
+            if (currentBeers.length === 0) {
+                currentBeersContainer.innerHTML = '<p class="no-beers">No current beers available.</p>';
+            } else {
+                currentBeers.forEach(beer => {
+                    const card = createBeerCard(beer);
+                    currentBeersContainer.appendChild(card);
+                });
+            }
+            
+            if (pastBeers.length === 0) {
+                pastBeersContainer.innerHTML = '<p class="no-beers">No past beers yet.</p>';
+            } else {
+                pastBeers.forEach(beer => {
+                    const card = createBeerCard(beer);
+                    pastBeersContainer.appendChild(card);
+                });
+            }
+        }
         
         console.log('Beers rendered successfully');
     } catch (error) {
         console.error('Error loading beers:', error);
-        const container = document.getElementById('beer-container');
+        const container = document.getElementById('beer-container') || document.getElementById('current-beers-container');
         if (container) {
             container.innerHTML = '<p style="text-align: center; color: #5a9fb5; padding: 2rem;">Unable to load beers. Please check your browser console for details.</p>';
         }
