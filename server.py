@@ -509,37 +509,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         const CANCEL_BTN = document.getElementById('cancelBtn');
         let editingBeer = null;
         
-        // Get auth credentials from sessionStorage or prompt
-        function getAuthHeader() {
-            let credentials = sessionStorage.getItem('adminCredentials');
-            if (!credentials) {
-                const auth = prompt('Enter admin password:');
-                if (auth) {
-                    credentials = 'Basic ' + btoa('admin:' + auth);
-                    sessionStorage.setItem('adminCredentials', credentials);
-                }
-            }
-            return credentials ? { 'Authorization': credentials } : {};
-        }
-        
-        // Check auth on load
-        async function checkAuth() {
-            const headers = getAuthHeader();
-            try {
-                const response = await fetch('/api/beers', { headers });
-                if (response.status === 401) {
-                    sessionStorage.removeItem('adminCredentials');
-                    alert('Authentication required. Please refresh and enter password.');
-                    return false;
-                }
-                return true;
-            } catch (e) {
-                return false;
-            }
-        }
-        
         // Load beers on page load
-        document.addEventListener('DOMContentLoaded', checkAuth);
+        document.addEventListener('DOMContentLoaded', loadBeers);
         
         // Form submission
         FORM.addEventListener('submit', async (e) => {
@@ -561,10 +532,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             }
             
             try {
-                const authHeaders = getAuthHeader();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(beerData)
                 });
                 
@@ -594,8 +564,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         async function loadBeers() {
             try {
-                const authHeaders = getAuthHeader();
-                const response = await fetch('/api/beers', { headers: authHeaders });
+                const response = await fetch('/api/beers');
                 const result = await response.json();
                 
                 if (result.success && result.beers) {
@@ -634,8 +603,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         async function editBeer(beerName) {
             try {
-                const authHeaders = getAuthHeader();
-                const response = await fetch('/api/beers/' + encodeURIComponent(beerName), { headers: authHeaders });
+                const response = await fetch('/api/beers/' + encodeURIComponent(beerName));
                 const result = await response.json();
                 
                 if (result.success && result.beer) {
@@ -667,10 +635,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             if (!confirm(`Are you sure you want to delete "${beerName}"?`)) return;
             
             try {
-                const authHeaders = getAuthHeader();
                 const response = await fetch('/api/beers/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: beerName })
                 });
                 
