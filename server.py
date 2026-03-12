@@ -67,7 +67,11 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         # Admin panel
         if parsed_path.path == "/admin":
             if not self.check_auth():
-                self.serve_login_page()
+                self.send_response(401)
+                self.send_header("WWW-Authenticate", 'Basic realm="Admin Area"')
+                self.send_header("Content-Type", "text/html")
+                self.end_headers()
+                self.wfile.write(b"<html><body><h1>401 Unauthorized</h1><p>Authentication required.</p></body></html>")
                 return
             self.serve_admin_panel()
             return
@@ -120,124 +124,6 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             return
         
         self.send_json_response({"success": False, "error": "Unknown endpoint"}, 404)
-    
-    def serve_login_page(self):
-        """Serve a login page that redirects to admin after auth."""
-        html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Required - Slade Brewing Admin</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 1rem;
-        }
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 {
-            color: #667eea;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 600;
-        }
-        input[type="password"] {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        button {
-            width: 100%;
-            padding: 0.85rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #5568d3;
-        }
-        .error {
-            color: #ff6b6b;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Admin Login</h1>
-        <p style="text-align: center; color: #666; margin-bottom: 1.5rem;">
-            Enter your admin password to access the beer management panel.
-        </p>
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required autofocus>
-            </div>
-            <button type="submit">Login</button>
-        </form>
-    </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const password = document.getElementById('password').value;
-            
-            fetch('/admin', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa('admin:' + password)
-                }
-            }).then(response => {
-                if (response.ok) {
-                    window.location.href = '/admin';
-                } else {
-                    alert('Invalid password. Please try again.');
-                }
-            }).catch(() => {
-                alert('Error logging in. Please try again.');
-            });
-        });
-    </script>
-</body>
-</html>"""
-        
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('WWW-Authenticate', 'Basic realm="Admin"')
-        self.end_headers()
-        self.wfile.write(html.encode())
     
     def serve_admin_panel(self):
         """Serve the admin panel HTML."""
@@ -623,8 +509,37 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         const CANCEL_BTN = document.getElementById('cancelBtn');
         let editingBeer = null;
         
+        // Get auth credentials from sessionStorage or prompt
+        function getAuthHeader() {
+            let credentials = sessionStorage.getItem('adminCredentials');
+            if (!credentials) {
+                const auth = prompt('Enter admin password:');
+                if (auth) {
+                    credentials = 'Basic ' + btoa('admin:' + auth);
+                    sessionStorage.setItem('adminCredentials', credentials);
+                }
+            }
+            return credentials ? { 'Authorization': credentials } : {};
+        }
+        
+        // Check auth on load
+        async function checkAuth() {
+            const headers = getAuthHeader();
+            try {
+                const response = await fetch('/api/beers', { headers });
+                if (response.status === 401) {
+                    sessionStorage.removeItem('adminCredentials');
+                    alert('Authentication required. Please refresh and enter password.');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
         // Load beers on page load
-        document.addEventListener('DOMContentLoaded', loadBeers);
+        document.addEventListener('DOMContentLoaded', checkAuth);
         
         // Form submission
         FORM.addEventListener('submit', async (e) => {
@@ -646,9 +561,10 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             }
             
             try {
+                const authHeaders = getAuthHeader();
                 const response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify(beerData)
                 });
                 
@@ -678,7 +594,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         async function loadBeers() {
             try {
-                const response = await fetch('/api/beers');
+                const authHeaders = getAuthHeader();
+                const response = await fetch('/api/beers', { headers: authHeaders });
                 const result = await response.json();
                 
                 if (result.success && result.beers) {
@@ -717,7 +634,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         
         async function editBeer(beerName) {
             try {
-                const response = await fetch('/api/beers/' + encodeURIComponent(beerName));
+                const authHeaders = getAuthHeader();
+                const response = await fetch('/api/beers/' + encodeURIComponent(beerName), { headers: authHeaders });
                 const result = await response.json();
                 
                 if (result.success && result.beer) {
@@ -749,9 +667,10 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             if (!confirm(`Are you sure you want to delete "${beerName}"?`)) return;
             
             try {
+                const authHeaders = getAuthHeader();
                 const response = await fetch('/api/beers/delete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify({ name: beerName })
                 });
                 
