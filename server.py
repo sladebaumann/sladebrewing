@@ -567,10 +567,11 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     </div>
                     
                     <div class="form-group">
-                        <label for="logo">Logo Image (PNG)</label>
+                        <label for="logo">Logo Image</label>
                         <input type="file" id="logo" name="logo" accept="image/png,image/jpeg,image/jpg">
-                        <input type="hidden" id="logoUrl" name="logoUrl" value="">
-                        <small style="color: #666;">Upload a PNG image or leave blank to keep existing</small>
+                        <p style="margin: 0.5rem 0; color: #666; text-align: center;">— OR —</p>
+                        <input type="url" id="logoUrl" name="logoUrl" placeholder="Enter image URL (e.g., https://assets.untappd.com/...)">
+                        <small style="color: #666;">Upload an image OR enter a URL</small>
                     </div>
                     
                     <div class="form-group">
@@ -774,19 +775,19 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     showMessage('Error uploading logo: ' + error.message, 'error');
                     return;
                 }
-            } else {
-                // Check for scraped logo URL from Untappd
-                const logoUrlInput = document.getElementById('logoUrl');
-                if (logoUrlInput && logoUrlInput.value) {
-                    beerData.logo = logoUrlInput.value;
                 } else {
-                    // Keep existing logo if no new file uploaded
-                    const logoInput = document.getElementById('logo');
-                    if (logoInput.dataset.existingLogo) {
-                        beerData.logo = logoInput.dataset.existingLogo;
+                    // Check for manually entered logo URL
+                    const logoUrlInput = document.getElementById('logoUrl');
+                    if (logoUrlInput && logoUrlInput.value) {
+                        beerData.logo = logoUrlInput.value;
+                    } else {
+                        // Keep existing logo if no new file uploaded
+                        const logoInput = document.getElementById('logo');
+                        if (logoInput.dataset.existingLogo) {
+                            beerData.logo = logoInput.dataset.existingLogo;
+                        }
                     }
                 }
-            }
             
             const endpoint = editingBeer ? '/api/beers/update' : '/api/beers/add';
             if (editingBeer) {
@@ -878,6 +879,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     document.getElementById('releaseDate').value = beer.releaseDate;
                     document.getElementById('logo').value = '';
                     document.getElementById('logo').dataset.existingLogo = beer.logo || '';
+                    document.getElementById('logoUrl').value = beer.logo || '';
                     document.getElementById('untappd').value = beer.untappd || '';
                     document.getElementById('currentlyAvailable').checked = beer.currentlyAvailable;
                     document.getElementById('featured').checked = beer.featured;
