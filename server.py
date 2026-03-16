@@ -13,9 +13,11 @@ import os
 import sys
 import subprocess
 import requests
+import re
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 # Configuration
 PORT = int(os.environ.get('PORT', 8000))
@@ -160,6 +162,11 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         # Delete news
         if parsed_path.path == "/api/news/delete":
             self.handle_delete_news(data)
+            return
+        
+        # Scrape Untappd beer
+        if parsed_path.path == "/api/scrape-untappd":
+            self.handle_scrape_untappd(data)
             return
         
         self.send_json_response({"success": False, "error": "Unknown endpoint"}, 404)
@@ -519,6 +526,15 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 <h2 id="form-title">Add New Beer</h2>
                 <div id="message" class="message"></div>
                 
+                <div class="form-group" style="background: #f0f9ff; padding: 1rem; border-radius: 4px; border: 1px solid #bae6fd; margin-bottom: 1.5rem;">
+                    <label for="untappdImport">Import from Untappd</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="url" id="untappdImport" placeholder="Paste Untappd URL here..." style="flex: 1;">
+                        <button type="button" class="btn btn-primary" style="width: auto; padding: 0.8rem 1rem;" onclick="scrapeUntappd()">Import</button>
+                    </div>
+                    <small style="color: #666;">Paste an Untappd beer URL to auto-fill the form</small>
+                </div>
+                
                     <form id="beerForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Beer Name *</label>
@@ -658,6 +674,41 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         const FORM_TITLE = document.getElementById('form-title');
         const CANCEL_BTN = document.getElementById('cancelBtn');
         let editingBeer = null;
+        
+        async function scrapeUntappd() {
+            const url = document.getElementById('untappdImport').value.trim();
+            if (!url) {
+                showMessage('Please enter a Untappd URL', 'error');
+                return;
+            }
+            
+            showMessage('Scraping Untappd...', 'success');
+            
+            try {
+                const response = await fetch('/api/scrape-untappd', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.beer) {
+                    const beer = result.beer;
+                    document.getElementById('name').value = beer.name || '';
+                    document.getElementById('style').value = beer.style || '';
+                    document.getElementById('description').value = beer.description || '';
+                    document.getElementById('abv').value = beer.abv || '';
+                    document.getElementById('ibu').value = beer.ibu || '';
+                    document.getElementById('untappd').value = beer.untappd || url;
+                    showMessage('Beer info imported! Fill in the remaining fields.', 'success');
+                } else {
+                    showMessage(result.error || 'Failed to import beer', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
         
         // Event delegation for edit/delete buttons
         document.addEventListener('click', (e) => {
@@ -1153,6 +1204,86 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
+    
+    def handle_scrape_untappd(self, data):
+        """Scrape beer info from Untappd URL."""
+        if 'url' not in data or not data['url']:
+            self.send_json_response({"success": False, "error": "URL required"}, 400)
+            return
+        
+        url = data['url']
+        
+        if 'untappd.com' not in url:
+            self.send_json_response({"success": False, "error": "Must be a valid Untappd URL"}, 400)
+            return
+        
+        try:
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+            
+            response = requests.get(url, headers=headers, timeout=15)
+            
+            if response.status_code != 200:
+                self.send_json_response({"success": False, "error": f"Failed to fetch page (status {response.status_code})"}, 400)
+                return
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            beer_name = ''
+            style = ''
+            abv = ''
+            ibu = ''
+            description = ''
+            
+            title_elem = soup.find('h1') or soup.find('h2')
+            if title_elem:
+                beer_name = title_elem.get_text(strip=True)
+            
+            style_elem = soup.find('span', class_='style') or soup.find('a', class_='style')
+            if style_elem:
+                style = style_elem.get_text(strip=True)
+            
+            abv_elem = soup.find('span', class_='abv') or soup.find('div', class_='abv')
+            if abv_elem:
+                abv_text = abv_elem.get_text(strip=True)
+                abv_match = re.search(r'(\d+\.?\d*)%?', abv_text)
+                if abv_match:
+                    abv = abv_match.group(1)
+            
+            ibu_elem = soup.find('span', class_='ibu') or soup.find('div', class_='ibu')
+            if ibu_elem:
+                ibu_text = ibu_elem.get_text(strip=True)
+                ibu_match = re.search(r'(\d+)', ibu_text)
+                if ibu_match:
+                    ibu = ibu_match.group(1)
+            
+            desc_elem = soup.find('div', class_='beer-desc') or soup.find('p', class_='desc') or soup.find('div', class_='description')
+            if desc_elem:
+                description = desc_elem.get_text(strip=True)
+            
+            if not beer_name:
+                self.send_json_response({"success": False, "error": "Could not parse beer name from page"}, 400)
+                return
+            
+            self.send_json_response({
+                "success": True,
+                "beer": {
+                    "name": beer_name,
+                    "style": style,
+                    "abv": float(abv) if abv else 0,
+                    "ibu": int(ibu) if ibu else 0,
+                    "description": description,
+                    "untappd": url
+                }
+            }, 200)
+            
+        except requests.RequestException as e:
+            self.send_json_response({"success": False, "error": f"Request failed: {str(e)}"}, 500)
+        except Exception as e:
+            self.send_json_response({"success": False, "error": f"Parse error: {str(e)}"}, 500)
     
     def handle_add_beer(self, data):
         """Add a new beer to beers.json."""
