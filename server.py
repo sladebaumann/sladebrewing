@@ -569,6 +569,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     <div class="form-group">
                         <label for="logo">Logo Image (PNG)</label>
                         <input type="file" id="logo" name="logo" accept="image/png,image/jpeg,image/jpg">
+                        <input type="hidden" id="logoUrl" name="logoUrl" value="">
                         <small style="color: #666;">Upload a PNG image or leave blank to keep existing</small>
                     </div>
                     
@@ -701,6 +702,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     document.getElementById('abv').value = beer.abv || '';
                     document.getElementById('ibu').value = beer.ibu || '';
                     document.getElementById('untappd').value = beer.untappd || url;
+                    if (beer.logo) {
+                        document.getElementById('logoUrl').value = beer.logo;
+                    }
                     showMessage('Beer info imported! Fill in the remaining fields.', 'success');
                 } else {
                     showMessage(result.error || 'Failed to import beer', 'error');
@@ -771,10 +775,16 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     return;
                 }
             } else {
-                // Keep existing logo if no new file uploaded
-                const logoInput = document.getElementById('logo');
-                if (logoInput.dataset.existingLogo) {
-                    beerData.logo = logoInput.dataset.existingLogo;
+                // Check for scraped logo URL from Untappd
+                const logoUrlInput = document.getElementById('logoUrl');
+                if (logoUrlInput && logoUrlInput.value) {
+                    beerData.logo = logoUrlInput.value;
+                } else {
+                    // Keep existing logo if no new file uploaded
+                    const logoInput = document.getElementById('logo');
+                    if (logoInput.dataset.existingLogo) {
+                        beerData.logo = logoInput.dataset.existingLogo;
+                    }
                 }
             }
             

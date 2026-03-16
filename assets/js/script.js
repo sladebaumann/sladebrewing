@@ -50,7 +50,8 @@ async function loadBeers() {
                 console.log('beers.json failed, trying API endpoint...');
                 const response = await fetch('/api/beers');
                 if (response.ok) {
-                    beers = await response.json();
+                    const data = await response.json();
+                    beers = data.beers;
                     console.log('Beers loaded from API');
                 } else {
                     throw new Error('API not available');
