@@ -1242,27 +1242,28 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             if title_elem:
                 beer_name = title_elem.get_text(strip=True)
             
-            style_elem = soup.find('span', class_='style') or soup.find('a', class_='style')
+            style_elem = soup.find('p', class_='style')
             if style_elem:
                 style = style_elem.get_text(strip=True)
             
-            abv_elem = soup.find('div', class_='details') or soup.find('span', class_='abv') or soup.find('div', class_='abv')
+            abv_elem = soup.find('p', class_='abv')
             if abv_elem:
                 abv_text = abv_elem.get_text(strip=True)
-                abv_match = re.search(r'(\d+\.?\d*)%?', abv_text)
+                abv_match = re.search(r'(\d+\.?\d*)', abv_text)
                 if abv_match:
                     abv = abv_match.group(1)
             
-            ibu_elem = soup.find('div', class_='details') or soup.find('span', class_='ibu') or soup.find('div', class_='ibu')
+            ibu_elem = soup.find('p', class_='ibu')
             if ibu_elem:
                 ibu_text = ibu_elem.get_text(strip=True)
                 ibu_match = re.search(r'(\d+)', ibu_text)
                 if ibu_match:
                     ibu = ibu_match.group(1)
             
-            desc_elem = soup.find('div', class_='desc') or soup.find('div', class_='beer-description-read-more') or soup.find('p', class_='desc') or soup.find('div', class_='description')
+            desc_elem = soup.find('div', class_='beer-descrption-read-more') or soup.find('div', class_='beer-descrption-read-less')
             if desc_elem:
                 description = desc_elem.get_text(strip=True)
+                description = re.sub(r'Show More$|Show Less$', '', description).strip()
             
             if not beer_name:
                 self.send_json_response({"success": False, "error": "Could not parse beer name from page"}, 400)
