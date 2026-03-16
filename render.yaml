@@ -9,3 +9,7 @@ services:
         value: 3.11
       - key: ADMIN_PASSWORD
         generateValue: true
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: sladebrewing/sladebrewing

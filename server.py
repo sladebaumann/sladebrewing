@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import subprocess
+import requests
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
@@ -23,8 +24,12 @@ BEERS_FILE = "beers.json"
 NEWS_FILE = "news.json"
 
 # Admin authentication - set via environment variable for security
-# Default password for development only - override in production!
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'devpassword123')
+
+# GitHub configuration
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+GITHUB_REPO = os.environ.get('GITHUB_REPO', '')
+GITHUB_BRANCH = os.environ.get('GITHUB_BRANCH', 'main')
 
 
 class SladBrewingHandler(SimpleHTTPRequestHandler):
@@ -1406,142 +1411,125 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         self.wfile.write(response_text.encode())
     
     def commit_to_github(self, action, beer_name):
-        """Commit beers.json changes to GitHub."""
+        """Commit beers.json changes to GitHub using API."""
+        if not GITHUB_TOKEN or not GITHUB_REPO:
+            print("GitHub: token or repo not configured, skipping push")
+            return False
+        
         try:
-            # Check if we're in a git repository
-            result = subprocess.run(
-                ['git', 'rev-parse', '--git-dir'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            with open(BEERS_FILE, 'r') as f:
+                content = f.read()
             
-            if result.returncode != 0:
-                # Not a git repo, skip commit
-                print(f"Git: not a git repo, skipping commit")
+            import base64
+            encoded_content = base64.b64encode(content.encode()).decode()
+            
+            headers = {
+                'Authorization': f'token {GITHUB_TOKEN}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            
+            repo_parts = GITHUB_REPO.split('/')
+            if len(repo_parts) != 2:
+                print(f"GitHub: invalid repo format: {GITHUB_REPO}")
                 return False
             
-            # Stage beers.json
-            add_result = subprocess.run(
-                ['git', 'add', 'beers.json'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            owner, repo = repo_parts
             
-            if add_result.returncode != 0:
-                print(f"Git: failed to stage beers.json: {add_result.stderr}")
-                return False
+            get_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{BEERS_FILE}'
+            get_response = requests.get(get_url, headers=headers)
             
-            # Create commit message
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            commit_msg = f"{action} beer: {beer_name} ({timestamp})"
+            sha = get_response.json().get('sha') if get_response.status_code == 200 else None
             
-            # Commit changes
-            commit_result = subprocess.run(
-                ['git', 'commit', '-m', commit_msg],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            commit_msg = f"{action} beer: {beer_name}"
             
-            if commit_result.returncode != 0:
-                # Nothing to commit or error
-                print(f"Git: nothing to commit or error: {commit_result.stderr}")
-                return False
+            if sha:
+                update_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{BEERS_FILE}'
+                data = {
+                    'message': commit_msg,
+                    'content': encoded_content,
+                    'sha': sha,
+                    'branch': GITHUB_BRANCH
+                }
+                response = requests.put(update_url, headers=headers, json=data)
+            else:
+                create_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{BEERS_FILE}'
+                data = {
+                    'message': commit_msg,
+                    'content': encoded_content,
+                    'branch': GITHUB_BRANCH
+                }
+                response = requests.put(create_url, headers=headers, json=data)
             
-            print(f"Git: committed {beer_name}")
-            
-            # Push to GitHub (requires proper git setup)
-            push_result = subprocess.run(
-                ['git', 'push'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if push_result.returncode == 0:
-                print(f"Git: pushed successfully")
+            if response.status_code in [200, 201]:
+                print(f"GitHub: pushed {beer_name} successfully")
                 return True
             else:
-                print(f"Git: push failed: {push_result.stderr}")
+                print(f"GitHub push failed: {response.status_code} - {response.text}")
                 return False
         
-        except subprocess.TimeoutExpired:
-            # Git operation timed out, but changes were saved locally
-            return False
         except Exception as e:
-            # Log error but don't fail the beer operation
-            print(f"Git commit error: {e}", file=sys.stderr)
+            print(f"GitHub commit error: {e}", file=sys.stderr)
             return False
     
     def commit_news_to_github(self, action, news_title):
-        """Commit news.json changes to GitHub."""
+        """Commit news.json changes to GitHub using API."""
+        if not GITHUB_TOKEN or not GITHUB_REPO:
+            print("GitHub: token or repo not configured, skipping push")
+            return False
+        
         try:
-            result = subprocess.run(
-                ['git', 'rev-parse', '--git-dir'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            with open(NEWS_FILE, 'r') as f:
+                content = f.read()
             
-            if result.returncode != 0:
-                print(f"Git: not a git repo, skipping commit")
+            import base64
+            encoded_content = base64.b64encode(content.encode()).decode()
+            
+            headers = {
+                'Authorization': f'token {GITHUB_TOKEN}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            
+            repo_parts = GITHUB_REPO.split('/')
+            if len(repo_parts) != 2:
+                print(f"GitHub: invalid repo format: {GITHUB_REPO}")
                 return False
             
-            add_result = subprocess.run(
-                ['git', 'add', 'news.json'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            owner, repo = repo_parts
             
-            if add_result.returncode != 0:
-                print(f"Git: failed to stage news.json: {add_result.stderr}")
-                return False
+            get_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{NEWS_FILE}'
+            get_response = requests.get(get_url, headers=headers)
             
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            commit_msg = f"{action} news: {news_title} ({timestamp})"
+            sha = get_response.json().get('sha') if get_response.status_code == 200 else None
             
-            commit_result = subprocess.run(
-                ['git', 'commit', '-m', commit_msg],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            commit_msg = f"{action} news: {news_title}"
             
-            if commit_result.returncode != 0:
-                print(f"Git: nothing to commit or error: {commit_result.stderr}")
-                return False
+            if sha:
+                update_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{NEWS_FILE}'
+                data = {
+                    'message': commit_msg,
+                    'content': encoded_content,
+                    'sha': sha,
+                    'branch': GITHUB_BRANCH
+                }
+                response = requests.put(update_url, headers=headers, json=data)
+            else:
+                create_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{NEWS_FILE}'
+                data = {
+                    'message': commit_msg,
+                    'content': encoded_content,
+                    'branch': GITHUB_BRANCH
+                }
+                response = requests.put(create_url, headers=headers, json=data)
             
-            print(f"Git: committed news {news_title}")
-            
-            push_result = subprocess.run(
-                ['git', 'push'],
-                cwd=STATIC_DIR,
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            
-            if push_result.returncode == 0:
-                print(f"Git: pushed successfully")
+            if response.status_code in [200, 201]:
+                print(f"GitHub: pushed news {news_title} successfully")
                 return True
             else:
-                print(f"Git: push failed: {push_result.stderr}")
+                print(f"GitHub push failed: {response.status_code} - {response.text}")
                 return False
         
-        except subprocess.TimeoutExpired:
-            return False
         except Exception as e:
-            print(f"Git commit error: {e}", file=sys.stderr)
+            print(f"GitHub commit error: {e}", file=sys.stderr)
             return False
     
     def end_headers(self):
