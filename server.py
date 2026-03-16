@@ -1276,11 +1276,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 description = desc_elem.get_text(strip=True)
                 description = re.sub(r'Show More$|Show Less$', '', description).strip()
             
-            logo_elem = soup.find('a', class_='image-big')
+            logo_elem = soup.find('a', class_='label')
             if logo_elem:
-                img_elem = logo_elem.find('img')
-                if img_elem:
-                    logo = img_elem.get('src', '')
+                logo = logo_elem.get('data-image', '')
             
             if not beer_name:
                 self.send_json_response({"success": False, "error": "Could not parse beer name from page"}, 400)
