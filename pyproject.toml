@@ -3,6 +3,7 @@ name = "sladebrewing"
 version = "0.1.0"
 description = "Slade Brewing Website"
 authors = ["Slade"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
