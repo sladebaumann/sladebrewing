@@ -1246,21 +1246,21 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             if style_elem:
                 style = style_elem.get_text(strip=True)
             
-            abv_elem = soup.find('span', class_='abv') or soup.find('div', class_='abv')
+            abv_elem = soup.find('div', class_='details') or soup.find('span', class_='abv') or soup.find('div', class_='abv')
             if abv_elem:
                 abv_text = abv_elem.get_text(strip=True)
                 abv_match = re.search(r'(\d+\.?\d*)%?', abv_text)
                 if abv_match:
                     abv = abv_match.group(1)
             
-            ibu_elem = soup.find('span', class_='ibu') or soup.find('div', class_='ibu')
+            ibu_elem = soup.find('div', class_='details') or soup.find('span', class_='ibu') or soup.find('div', class_='ibu')
             if ibu_elem:
                 ibu_text = ibu_elem.get_text(strip=True)
                 ibu_match = re.search(r'(\d+)', ibu_text)
                 if ibu_match:
                     ibu = ibu_match.group(1)
             
-            desc_elem = soup.find('div', class_='beer-desc') or soup.find('p', class_='desc') or soup.find('div', class_='description')
+            desc_elem = soup.find('div', class_='desc') or soup.find('div', class_='beer-description-read-more') or soup.find('p', class_='desc') or soup.find('div', class_='description')
             if desc_elem:
                 description = desc_elem.get_text(strip=True)
             
