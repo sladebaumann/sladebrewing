@@ -1237,6 +1237,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             abv = ''
             ibu = ''
             description = ''
+            logo = ''
             
             title_elem = soup.find('h1') or soup.find('h2')
             if title_elem:
@@ -1265,6 +1266,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 description = desc_elem.get_text(strip=True)
                 description = re.sub(r'Show More$|Show Less$', '', description).strip()
             
+            logo_elem = soup.find('a', class_='image-big')
+            if logo_elem:
+                img_elem = logo_elem.find('img')
+                if img_elem:
+                    logo = img_elem.get('src', '')
+            
             if not beer_name:
                 self.send_json_response({"success": False, "error": "Could not parse beer name from page"}, 400)
                 return
@@ -1277,7 +1284,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     "abv": float(abv) if abv else 0,
                     "ibu": int(ibu) if ibu else 0,
                     "description": description,
-                    "untappd": url
+                    "untappd": url,
+                    "logo": logo
                 }
             }, 200)
             
