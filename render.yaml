@@ -12,4 +12,4 @@ services:
       - key: GITHUB_TOKEN
         sync: false
       - key: GITHUB_REPO
-        value: sladebrewing/sladebrewing
+        value: sladebaumann/sladebrewing
