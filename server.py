@@ -106,6 +106,17 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             self.handle_get_news_item(news_id)
             return
         
+        # Clean URL routing - map /beers to /beers.html, /news to /news.html, etc.
+        clean_urls = {
+            '/': '/index.html',
+            '/beers': '/beers.html',
+            '/news': '/news.html',
+        }
+        
+        path = parsed_path.path
+        if path in clean_urls:
+            self.path = clean_urls[path]
+        
         # Serve static files
         super().do_GET()
     

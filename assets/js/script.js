@@ -359,7 +359,7 @@ function createNewsCard(newsItem, showFullContent = false) {
         </header>
         ${imageHtml}
         ${content}
-        ${!showFullContent ? '<a href="news.html" class="btn btn-secondary">View All News</a>' : ''}
+        ${!showFullContent ? '<a href="/news" class="btn btn-secondary">View All News</a>' : ''}
     `;
 
     return card;
