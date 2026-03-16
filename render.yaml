@@ -3,7 +3,7 @@ services:
     name: slade-brewing
     runtime: python3
     startCommand: python server.py
-    buildCommand: python --version
+    buildCommand: pip install -r requirements.txt
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
