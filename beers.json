@@ -31,5 +31,16 @@
     "releaseDate": "2025-11-28",
     "currentlyAvailable": true,
     "featured": false
+  },
+  "Test Beer": {
+    "description": "A test beer",
+    "logo": "",
+    "untappd": "",
+    "abv": "6.0",
+    "ibu": "40",
+    "style": "IPA",
+    "releaseDate": "2026-03-15",
+    "currentlyAvailable": true,
+    "featured": false
   }
 }
