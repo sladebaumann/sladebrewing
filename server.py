@@ -1562,8 +1562,11 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
     
     def commit_to_github(self, action, beer_name):
         """Commit beers.json changes to GitHub using API."""
+        print(f"GitHub: Starting commit for {beer_name}", flush=True)
+        print(f"GitHub: TOKEN set = {bool(GITHUB_TOKEN)}, REPO = {GITHUB_REPO}", flush=True)
+        
         if not GITHUB_TOKEN or not GITHUB_REPO:
-            print("GitHub: token or repo not configured, skipping push")
+            print("GitHub: token or repo not configured, skipping push", flush=True)
             return False
         
         try:
@@ -1580,13 +1583,14 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             
             repo_parts = GITHUB_REPO.split('/')
             if len(repo_parts) != 2:
-                print(f"GitHub: invalid repo format: {GITHUB_REPO}")
+                print(f"GitHub: invalid repo format: {GITHUB_REPO}", flush=True)
                 return False
             
             owner, repo = repo_parts
             
             get_url = f'https://api.github.com/repos/{owner}/{repo}/contents/{BEERS_FILE}'
             get_response = requests.get(get_url, headers=headers)
+            print(f"GitHub: GET response status = {get_response.status_code}", flush=True)
             
             sha = get_response.json().get('sha') if get_response.status_code == 200 else None
             
