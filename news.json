@@ -14,5 +14,13 @@
     "content": "The winter months are here, and we're taking full advantage with some exciting seasonal brews in development. Check back soon for announcements!",
     "image": null,
     "featured": false
+  },
+  "test-news": {
+    "title": "Test News",
+    "date": "2026-03-15",
+    "summary": "Test summary",
+    "content": "Test content",
+    "image": null,
+    "featured": false
   }
 }
