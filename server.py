@@ -111,6 +111,13 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             return
             
         parsed_path = urlparse(self.path)
+        
+        # Handle multipart form data for file uploads
+        content_type = self.headers.get('Content-Type', '')
+        if 'multipart/form-data' in content_type:
+            self.handle_file_upload(parsed_path)
+            return
+        
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length).decode('utf-8')
         
@@ -507,7 +514,7 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 <h2 id="form-title">Add New Beer</h2>
                 <div id="message" class="message"></div>
                 
-                <form id="beerForm">
+                    <form id="beerForm" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="name">Beer Name *</label>
                         <input type="text" id="name" name="name" required placeholder="e.g., Doe Brand">
@@ -539,8 +546,9 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     </div>
                     
                     <div class="form-group">
-                        <label for="logo">Logo Image Path</label>
-                        <input type="text" id="logo" name="logo" placeholder="images/untappd-logos/beer-name.png">
+                        <label for="logo">Logo Image (PNG)</label>
+                        <input type="file" id="logo" name="logo" accept="image/png,image/jpeg,image/jpg">
+                        <small style="color: #666;">Upload a PNG image or leave blank to keep existing</small>
                     </div>
                     
                     <div class="form-group">
@@ -646,6 +654,21 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         const CANCEL_BTN = document.getElementById('cancelBtn');
         let editingBeer = null;
         
+        // Event delegation for edit/delete buttons
+        document.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('[data-beer-name]');
+            const deleteBtn = e.target.closest('[data-beer-name-delete]');
+            
+            if (editBtn) {
+                const beerName = decodeURIComponent(editBtn.dataset.beerName);
+                editBeer(beerName);
+            }
+            if (deleteBtn) {
+                const beerName = decodeURIComponent(deleteBtn.dataset.beerNameDelete);
+                deleteBeer(beerName);
+            }
+        });
+        
         // Load beers on page load
         document.addEventListener('DOMContentLoaded', loadBeers);
         
@@ -653,15 +676,51 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         FORM.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(FORM);
-            const beerData = Object.fromEntries(formData);
             
             // Convert checkboxes to boolean
-            beerData.currentlyAvailable = formData.has('currentlyAvailable');
-            beerData.featured = formData.has('featured');
+            const beerData = {
+                name: formData.get('name'),
+                style: formData.get('style'),
+                description: formData.get('description'),
+                abv: parseFloat(formData.get('abv')),
+                ibu: parseInt(formData.get('ibu')),
+                releaseDate: formData.get('releaseDate'),
+                untappd: formData.get('untappd') || '',
+                currentlyAvailable: formData.has('currentlyAvailable'),
+                featured: formData.has('featured'),
+                logo: ''
+            };
             
-            // Convert numbers
-            beerData.abv = parseFloat(beerData.abv);
-            beerData.ibu = parseInt(beerData.ibu);
+            // Handle logo file upload
+            const logoFile = formData.get('logo');
+            if (logoFile && logoFile.size > 0) {
+                try {
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('logo', logoFile);
+                    
+                    const uploadResponse = await fetch('/api/upload-logo', {
+                        method: 'POST',
+                        body: uploadFormData
+                    });
+                    const uploadResult = await uploadResponse.json();
+                    
+                    if (uploadResult.success) {
+                        beerData.logo = uploadResult.path;
+                    } else {
+                        showMessage('Error uploading logo: ' + uploadResult.error, 'error');
+                        return;
+                    }
+                } catch (error) {
+                    showMessage('Error uploading logo: ' + error.message, 'error');
+                    return;
+                }
+            } else {
+                // Keep existing logo if no new file uploaded
+                const logoInput = document.getElementById('logo');
+                if (logoInput.dataset.existingLogo) {
+                    beerData.logo = logoInput.dataset.existingLogo;
+                }
+            }
             
             const endpoint = editingBeer ? '/api/beers/update' : '/api/beers/add';
             if (editingBeer) {
@@ -726,8 +785,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                                 </p>
                                 <p><strong>ABV:</strong> ${beer.abv}% | <strong>IBU:</strong> ${beer.ibu}</p>
                                 <div class="beer-item-actions">
-                                    <button class="btn btn-edit" onclick="editBeer('${beer.name}')">Edit</button>
-                                    <button class="btn btn-danger" onclick="deleteBeer('${beer.name}')">Delete</button>
+                                    <button class="btn btn-edit" data-beer-name="${encodeURIComponent(beer.name)}">Edit</button>
+                                    <button class="btn btn-danger" data-beer-name-delete="${encodeURIComponent(beer.name)}">Delete</button>
                                 </div>
                             </div>
                         `).join('');
@@ -751,7 +810,8 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                     document.getElementById('abv').value = beer.abv;
                     document.getElementById('ibu').value = beer.ibu;
                     document.getElementById('releaseDate').value = beer.releaseDate;
-                    document.getElementById('logo').value = beer.logo || '';
+                    document.getElementById('logo').value = '';
+                    document.getElementById('logo').dataset.existingLogo = beer.logo || '';
                     document.getElementById('untappd').value = beer.untappd || '';
                     document.getElementById('currentlyAvailable').checked = beer.currentlyAvailable;
                     document.getElementById('featured').checked = beer.featured;
@@ -1027,6 +1087,68 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
+    def handle_file_upload(self, parsed_path):
+        """Handle file uploads for beer logos."""
+        if parsed_path.path != '/api/upload-logo':
+            self.send_json_response({"success": False, "error": "Unknown upload endpoint"}, 404)
+            return
+        
+        try:
+            content_type = self.headers.get('Content-Type', '')
+            boundary = content_type.split('boundary=')[-1] if 'boundary=' in content_type else None
+            
+            if not boundary:
+                self.send_json_response({"success": False, "error": "No boundary found"}, 400)
+                return
+            
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            
+            # Parse multipart form data
+            parts = body.split(('--' + boundary).encode())
+            
+            for part in parts:
+                if b'Content-Disposition: form-data; name="logo"' in part:
+                    # Extract filename and file content
+                    header_end = part.find(b'\r\n\r\n')
+                    if header_end == -1:
+                        continue
+                    
+                    headers = part[:header_end].decode('utf-8', errors='ignore')
+                    file_content = part[header_end + 4:]
+                    
+                    # Remove trailing \r\n
+                    if file_content.endswith(b'\r\n'):
+                        file_content = file_content[:-2]
+                    
+                    # Check file type
+                    if not (headers.lower().find('image/png') >= 0 or headers.lower().find('image/jpeg') >= 0):
+                        self.send_json_response({"success": False, "error": "Only PNG and JPEG images are allowed"}, 400)
+                        return
+                    
+                    # Generate filename based on timestamp
+                    import time
+                    timestamp = int(time.time())
+                    filename = f"beer-logo-{timestamp}.png"
+                    upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images', 'untappd-logos')
+                    
+                    # Create directory if it doesn't exist
+                    os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # Save file
+                    filepath = os.path.join(upload_dir, filename)
+                    with open(filepath, 'wb') as f:
+                        f.write(file_content)
+                    
+                    image_path = f"images/untappd-logos/{filename}"
+                    self.send_json_response({"success": True, "path": image_path}, 200)
+                    return
+            
+            self.send_json_response({"success": False, "error": "No logo file found"}, 400)
+            
+        except Exception as e:
+            self.send_json_response({"success": False, "error": str(e)}, 500)
+    
     def handle_add_beer(self, data):
         """Add a new beer to beers.json."""
         try:
@@ -1066,9 +1188,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 json.dump(beers, f, indent=2)
             
             # Commit to GitHub
-            self.commit_to_github("Add", data['name'])
+            git_success = self.commit_to_github("Add", data['name'])
             
-            self.send_json_response({"success": True, "message": "Beer added successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "Beer added and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "Beer added (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1119,9 +1244,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 json.dump(beers, f, indent=2)
             
             # Commit to GitHub
-            self.commit_to_github("Update", new_name)
+            git_success = self.commit_to_github("Update", new_name)
             
-            self.send_json_response({"success": True, "message": "Beer updated successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "Beer updated and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "Beer updated (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1146,9 +1274,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 json.dump(beers, f, indent=2)
             
             # Commit to GitHub
-            self.commit_to_github("Delete", beer_name)
+            git_success = self.commit_to_github("Delete", beer_name)
             
-            self.send_json_response({"success": True, "message": "Beer deleted successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "Beer deleted and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "Beer deleted (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1182,9 +1313,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             with open(NEWS_FILE, 'w') as f:
                 json.dump(news, f, indent=2)
             
-            self.commit_news_to_github("Add", data['title'])
+            git_success = self.commit_news_to_github("Add", data['title'])
             
-            self.send_json_response({"success": True, "message": "News item added successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "News item added and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "News item added (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1221,9 +1355,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             with open(NEWS_FILE, 'w') as f:
                 json.dump(news, f, indent=2)
             
-            self.commit_news_to_github("Update", data['title'])
+            git_success = self.commit_news_to_github("Update", data['title'])
             
-            self.send_json_response({"success": True, "message": "News item updated successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "News item updated and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "News item updated (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1247,9 +1384,12 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             with open(NEWS_FILE, 'w') as f:
                 json.dump(news, f, indent=2)
             
-            self.commit_news_to_github("Delete", news_title)
+            git_success = self.commit_news_to_github("Delete", news_title)
             
-            self.send_json_response({"success": True, "message": "News item deleted successfully"}, 200)
+            if git_success:
+                self.send_json_response({"success": True, "message": "News item deleted and pushed to GitHub"}, 200)
+            else:
+                self.send_json_response({"success": True, "message": "News item deleted (Git push failed - changes saved locally)"}, 200)
         except Exception as e:
             self.send_json_response({"success": False, "error": str(e)}, 500)
     
@@ -1279,15 +1419,21 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             
             if result.returncode != 0:
                 # Not a git repo, skip commit
+                print(f"Git: not a git repo, skipping commit")
                 return False
             
             # Stage beers.json
-            subprocess.run(
+            add_result = subprocess.run(
                 ['git', 'add', 'beers.json'],
                 cwd=STATIC_DIR,
                 capture_output=True,
+                text=True,
                 timeout=5
             )
+            
+            if add_result.returncode != 0:
+                print(f"Git: failed to stage beers.json: {add_result.stderr}")
+                return False
             
             # Create commit message
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1304,7 +1450,10 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             
             if commit_result.returncode != 0:
                 # Nothing to commit or error
+                print(f"Git: nothing to commit or error: {commit_result.stderr}")
                 return False
+            
+            print(f"Git: committed {beer_name}")
             
             # Push to GitHub (requires proper git setup)
             push_result = subprocess.run(
@@ -1312,10 +1461,15 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
                 cwd=STATIC_DIR,
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30
             )
             
-            return push_result.returncode == 0
+            if push_result.returncode == 0:
+                print(f"Git: pushed successfully")
+                return True
+            else:
+                print(f"Git: push failed: {push_result.stderr}")
+                return False
         
         except subprocess.TimeoutExpired:
             # Git operation timed out, but changes were saved locally
@@ -1337,14 +1491,20 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             )
             
             if result.returncode != 0:
+                print(f"Git: not a git repo, skipping commit")
                 return False
             
-            subprocess.run(
+            add_result = subprocess.run(
                 ['git', 'add', 'news.json'],
                 cwd=STATIC_DIR,
                 capture_output=True,
+                text=True,
                 timeout=5
             )
+            
+            if add_result.returncode != 0:
+                print(f"Git: failed to stage news.json: {add_result.stderr}")
+                return False
             
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             commit_msg = f"{action} news: {news_title} ({timestamp})"
@@ -1358,17 +1518,25 @@ class SladBrewingHandler(SimpleHTTPRequestHandler):
             )
             
             if commit_result.returncode != 0:
+                print(f"Git: nothing to commit or error: {commit_result.stderr}")
                 return False
+            
+            print(f"Git: committed news {news_title}")
             
             push_result = subprocess.run(
                 ['git', 'push'],
                 cwd=STATIC_DIR,
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30
             )
             
-            return push_result.returncode == 0
+            if push_result.returncode == 0:
+                print(f"Git: pushed successfully")
+                return True
+            else:
+                print(f"Git: push failed: {push_result.stderr}")
+                return False
         
         except subprocess.TimeoutExpired:
             return False

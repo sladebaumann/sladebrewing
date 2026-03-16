@@ -36,7 +36,7 @@ async function loadBeers() {
         // Try to fetch from beers.json (for server environments)
         try {
             console.log('Attempting to load beers.json...');
-            const response = await fetch('./beers.json');
+            let response = await fetch('./beers.json');
             
             if (response.ok) {
                 beers = await response.json();
@@ -45,16 +45,33 @@ async function loadBeers() {
                 throw new Error('beers.json not found');
             }
         } catch (fetchError) {
-            console.error('Could not load beers:', fetchError);
-            return;
+            // Try API endpoint as fallback
+            try {
+                console.log('beers.json failed, trying API endpoint...');
+                const response = await fetch('/api/beers');
+                if (response.ok) {
+                    beers = await response.json();
+                    console.log('Beers loaded from API');
+                } else {
+                    throw new Error('API not available');
+                }
+            } catch (apiError) {
+                console.error('Could not load beers:', apiError);
+                return;
+            }
         }
     }
     
     try {
-        // Convert to array and sort by release date (newest first)
+        // Convert to array and sort by currently available first, then by release date (newest first)
         const beerArray = Object.entries(beers)
             .map(([name, data]) => ({ name, ...data }))
             .sort((a, b) => {
+                // First sort by currentlyAvailable (available first)
+                if (a.currentlyAvailable !== b.currentlyAvailable) {
+                    return b.currentlyAvailable ? 1 : -1;
+                }
+                // Then sort by release date (newest first)
                 const dateA = new Date(a.releaseDate);
                 const dateB = new Date(b.releaseDate);
                 return dateB - dateA;
@@ -269,10 +286,20 @@ async function loadNews() {
                 throw new Error('news.json not found');
             }
         } catch (fetchError) {
-            if (typeof newsData !== 'undefined') {
-                news = newsData;
-            } else {
-                throw new Error('No news data available');
+            // Try API endpoint as fallback
+            try {
+                const response = await fetch('/api/news');
+                if (response.ok) {
+                    news = await response.json();
+                } else {
+                    throw new Error('API not available');
+                }
+            } catch (apiError) {
+                if (typeof newsData !== 'undefined') {
+                    news = newsData;
+                } else {
+                    throw new Error('No news data available');
+                }
             }
         }
 
