@@ -89,11 +89,12 @@ async function loadBeers() {
         console.log('Current beers container:', currentBeersContainer);
         console.log('Past beers container:', pastBeersContainer);
         
-        // Homepage: show all beers
+        // Homepage: show only currently available beers
         if (homepageContainer) {
             console.log('Rendering beers for homepage');
+            const currentBeers = beerArray.filter(b => b.currentlyAvailable);
             homepageContainer.innerHTML = '';
-            beerArray.forEach(beer => {
+            currentBeers.forEach(beer => {
                 const card = createBeerCard(beer);
                 homepageContainer.appendChild(card);
             });
