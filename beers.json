@@ -12,24 +12,24 @@
   },
   "Wild n' Mild": {
     "description": "An easy drinking, low abv dark mild brewed with a pound of northern MN wild rice!",
-    "logo": "images/untappd-logos/Wild n' Mild Untappd Image.png",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6483539_59ed4_hd.jpeg",
     "untappd": "https://untappd.com/b/slade-brewing-wild-n-mild/6483539",
-    "abv": "2.8",
-    "ibu": "20",
+    "abv": 2.8,
+    "ibu": 20,
     "style": "Mild - Dark",
     "releaseDate": "2025-11-07",
-    "currentlyAvailable": true,
+    "currentlyAvailable": false,
     "featured": false
   },
   "Sparkle Pants": {
     "description": "A coriander-forward belgian witbier with slight sweetness, dryness, and orange flavors.",
-    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6518820_7c198_hd.jpeg",
+    "logo": "images/untappd-logos/Sparkle Pants Witbier Untappd Image.png",
     "untappd": "http://untappd.com/b/slade-brewing-sparkle-pants/6518820",
-    "abv": 4.4,
-    "ibu": 14,
+    "abv": "4.4",
+    "ibu": "14",
     "style": "Wheat Beer - Witbier/Blanche",
     "releaseDate": "2025-11-28",
-    "currentlyAvailable": false,
+    "currentlyAvailable": true,
     "featured": false
   },
   "Ushi's Rice Lager": {
