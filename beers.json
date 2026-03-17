@@ -23,13 +23,13 @@
   },
   "Sparkle Pants": {
     "description": "A coriander-forward belgian witbier with slight sweetness, dryness, and orange flavors.",
-    "logo": "images/untappd-logos/Sparkle Pants Witbier Untappd Image.png",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6518820_7c198_hd.jpeg",
     "untappd": "http://untappd.com/b/slade-brewing-sparkle-pants/6518820",
-    "abv": "4.4",
-    "ibu": "14",
+    "abv": 4.4,
+    "ibu": 14,
     "style": "Wheat Beer - Witbier/Blanche",
     "releaseDate": "2025-11-28",
-    "currentlyAvailable": true,
+    "currentlyAvailable": false,
     "featured": false
   },
   "Ushi's Rice Lager": {
