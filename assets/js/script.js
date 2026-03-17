@@ -99,9 +99,12 @@ async function loadBeers() {
                 homepageContainer.appendChild(card);
             });
             
-            // Set featured beer (most recent one that's currently available)
+            // Set featured beer (prioritize one with featured flag, otherwise most recent)
             const availableBeers = beerArray.filter(b => b.currentlyAvailable);
-            if (availableBeers.length > 0) {
+            const featuredBeer = availableBeers.find(b => b.featured);
+            if (featuredBeer) {
+                populateFeaturedBeer(featuredBeer);
+            } else if (availableBeers.length > 0) {
                 populateFeaturedBeer(availableBeers[0]);
             }
         }
