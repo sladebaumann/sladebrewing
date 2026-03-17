@@ -42,5 +42,16 @@
     "releaseDate": "2026-02-08",
     "currentlyAvailable": true,
     "featured": true
+  },
+  "De Copenhagen Pompelmoes": {
+    "description": "Belgian Saison brewed with crushed cardamom and hops with grapefruit forward flavors",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6595521_952f5_hd.jpeg",
+    "untappd": "https://untappd.com/b/slade-brewing-de-copenhagen-pompelmoes/6595521",
+    "abv": 6.8,
+    "ibu": 29,
+    "style": "Homebrew, Farmhouse Ale - Saison",
+    "releaseDate": "2026-02-11",
+    "currentlyAvailable": true,
+    "featured": false
   }
 }
