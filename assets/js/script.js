@@ -99,6 +99,12 @@ async function loadBeers() {
                 homepageContainer.appendChild(card);
             });
             
+            // Update beer count stat
+            const beerCountEl = document.getElementById('beer-count');
+            if (beerCountEl) {
+                beerCountEl.textContent = beerArray.length;
+            }
+            
             // Set featured beer (prioritize one with featured flag, otherwise most recent)
             const availableBeers = beerArray.filter(b => b.currentlyAvailable);
             const featuredBeer = availableBeers.find(b => b.featured);
