@@ -1094,6 +1094,17 @@ a:hover {
     margin-bottom: 0;
 }
 
+.news-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+}
+
 .back-link {
     text-align: center;
     margin-top: 3rem;
