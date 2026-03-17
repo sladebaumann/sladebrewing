@@ -31,5 +31,16 @@
     "releaseDate": "2025-11-28",
     "currentlyAvailable": true,
     "featured": false
+  },
+  "Ushi's Rice Lager": {
+    "description": "Japanese Lager brewed with Saaz and Sorachi Ace hops. W43/70 yeast and flaked rice.",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6595516_7de60_hd.jpeg",
+    "untappd": "https://untappd.com/b/slade-brewing-ushi-s-rice-lager/6595516",
+    "abv": 4.6,
+    "ibu": 25,
+    "style": "Homebrew, Lager - Japanese Rice",
+    "releaseDate": "2026-02-08",
+    "currentlyAvailable": true,
+    "featured": true
   }
 }
