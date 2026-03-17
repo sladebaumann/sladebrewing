@@ -53,5 +53,16 @@
     "releaseDate": "2026-02-11",
     "currentlyAvailable": true,
     "featured": false
+  },
+  "Amy's Karty Party": {
+    "description": "Brewed in celebration of Amy's win in our Fantasy Football League. Her team - Karty",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6630618_7e7a7_hd.jpeg",
+    "untappd": "https://untappd.com/b/slade-brewing-amy-s-karty-party/6630618",
+    "abv": 5.3,
+    "ibu": 21,
+    "style": "Homebrew, Lager - Mexican",
+    "releaseDate": "2026-03-06",
+    "currentlyAvailable": true,
+    "featured": false
   }
 }
