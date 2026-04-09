@@ -75,5 +75,16 @@
     "releaseDate": "2026-04-11",
     "currentlyAvailable": true,
     "featured": false
+  },
+  "Little Monsters": {
+    "description": "Ashley's current favorite beer style brewed for Ashley's Birthday!",
+    "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6665156_0e036_hd.jpeg",
+    "untappd": "https://untappd.com/b/slade-brewing-little-monsters/6665156",
+    "abv": 5,
+    "ibu": 21,
+    "style": "Homebrew, Lager - Vienna",
+    "releaseDate": "2026-04-11",
+    "currentlyAvailable": true,
+    "featured": true
   }
 }
