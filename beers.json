@@ -66,14 +66,14 @@
     "featured": false
   },
   "Gagaweizen": {
-    "description": "A hefeweizen brewed with Spelt instead of traditional wheat. Named after Ashley's fa",
+    "description": "A hefeweizen brewed with Spelt instead of traditional wheat. Named after Ashley's favorite artist.",
     "logo": "https://assets.untappd.com/site/beer_logos_hd/beer-6665155_8100b_hd.jpeg",
     "untappd": "https://untappd.com/b/slade-brewing-gagaweizen/6665155",
     "abv": 5.3,
     "ibu": 11,
     "style": "Homebrew, Wheat Beer - Hefeweizen",
     "releaseDate": "2026-04-11",
-    "currentlyAvailable": true,
+    "currentlyAvailable": false,
     "featured": false
   },
   "Little Monster": {
